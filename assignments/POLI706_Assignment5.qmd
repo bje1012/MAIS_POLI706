@@ -1,0 +1,89 @@
+---
+title: "**POLI706: Advanced Methods of Political Analysis**"
+subtitle: |
+          | 
+          | Problem set 5
+          |
+documentclass: article
+format: 
+  pdf:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+    code-block-bg: light
+    code-block-border-left: "#31BAE9"
+    linkcolor: highlight
+    urlcolor: highlight
+    highlight-style: atom-one
+#bibliography: W2.bib
+header-includes:
+  -  \usepackage{hyperref}
+  -  \usepackage{mathpazo}
+  -  \usepackage{bookmark}
+  -  \definecolor{light}{HTML}{EEEEEE}
+  -  \definecolor{highlight}{HTML}{9A2A2A}
+  -  \definecolor{dark}{HTML}{330033}
+  -  \usepackage{setspace}\singlespacing
+  -  \usepackage{fvextra}
+  -  \setmainfont[ItalicFont = {TeXGyrePagella-Italic}]{TeX Gyre Pagella}
+  -  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  #-  \setmonofont{Fira Code}[Contextuals=Alternate]
+  -  \makeatletter
+  -  \renewcommand*\verbatim@nolig@list{}
+  -  \makeatother
+# You have to install fira font and tex gyre pagella
+biblio-style: apsr
+geometry: margin=1in
+#fontfamily: mathpazo
+fontsize: 11pt
+link-citation: true
+indent: true
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, error = FALSE, 
+                      message = FALSE, warning = FALSE)
+# Load packages to import data
+library(ezpickr);library(knitr);library(patchwork);library(tidyverse)
+```
+
+## Exercise 1
+
+For this exercise we will use the `cats` dataset from the `MASS` package. You should use `?cats` to learn about the background of this dataset.
+
+```{r}
+library(MASS)
+data(cats)
+```
+
+
+a. Fit the following simple linear regression model in `R`. Use heart weight as the response and body weight as the predictor. 
+
+$$ Y_i = \beta_0 + \beta_1 x_i + \epsilon_i$$
+
+
+Store the results in a variable called `cat_model`. Use a $t$ test to test the significance of the regression. Report the following:
+
+b. The null and alternative hypotheses
+
+c. The value of the test statistic
+
+d. The p-value of the test
+
+e. A statistical decision at $\alpha = 0.05$
+
+f. A conclusion in the context of the problem
+
+```{r}
+cat_model = lm(Hwt ~ Bwt, data = cats);
+summary(cat_model)
+```
+
+## Exercise 2
+
+What are $\beta_0$, $\beta_1$, $\hat{\beta_0}$, $\hat{\beta_1}$, $x$, $x_i$, $u$, $\hat{u_i}$ in output of simple linear regression from the Exercise 1? 
+
+## Exercise 3
+Explain under which circumstances you will get a large slope coefficient estimates when you run a regression model.

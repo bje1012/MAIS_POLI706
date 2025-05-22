@@ -1,0 +1,105 @@
+---
+title: "**POLI706: Advanced Methods of Political Analysis**"
+subtitle: |
+          | 
+          | Problem set 6
+          |
+documentclass: article
+format: 
+  pdf:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+    code-block-bg: light
+    code-block-border-left: "#31BAE9"
+    linkcolor: highlight
+    urlcolor: highlight
+    highlight-style: atom-one
+#bibliography: W2.bib
+header-includes:
+  -  \usepackage{hyperref}
+  -  \usepackage{mathpazo}
+  -  \usepackage{bookmark}
+  -  \definecolor{light}{HTML}{EEEEEE}
+  -  \definecolor{highlight}{HTML}{9A2A2A}
+  -  \definecolor{dark}{HTML}{330033}
+  -  \usepackage{setspace}\singlespacing
+  -  \usepackage{fvextra}
+  -  \setmainfont[ItalicFont = {TeXGyrePagella-Italic}]{TeX Gyre Pagella}
+  -  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  #-  \setmonofont{Fira Code}[Contextuals=Alternate]
+  -  \makeatletter
+  -  \renewcommand*\verbatim@nolig@list{}
+  -  \makeatother
+# You have to install fira font and tex gyre pagella
+biblio-style: apsr
+geometry: margin=1in
+#fontfamily: mathpazo
+fontsize: 11pt
+link-citation: true
+indent: true
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, error = FALSE, 
+                      message = FALSE, warning = FALSE)
+# Load packages to import data
+library(ezpickr);library(knitr);library(patchwork);library(tidyverse)
+```
+
+Load the data, `assignment_data` from Blackboard to your RStudio. Then, answer the following questions using the data. You should assemble and analyze data in accordance with instructions, producing a detailed discussion (including visualizations) of results. All tables and graphs need to be perfectly labeled, and all discussions need to be at journal-quality level. The document must be created in \LaTeX, though there are no restrictions on the layout of the document. Screenshots are unacceptable.
+
+## Exercise 1
+
+Estimate a model regressing values of the electoral democracy index on logged values of GDP per capita and interpret the results.
+
+## Exercise 2
+
+Estimate the same model as in 1 and add EMB autonomy.
+
+a. Interpet the results.
+
+b. Describe what changed between model 1 and model 2.
+
+## Exercise 3
+Find the partial slope coefficient for EMB autonomy by doing the following:
+
+a. Regress EDI on logged values of GDP.
+
+b. Regress EMB autonomy on logged values of GDP.
+
+c. Regress the residuals from part 3a on the residuals from part 3b.
+
+d. Plot the relationship between residuals from part 3a and part 3b.
+
+e. Describe in simple language what steps a-c are doing.
+
+## Exercise 4
+Estimate the same model as in 2 and add EMB capacity.
+
+a. Interpet the results.
+
+b. Describe what changed. (Note effect sizes and the R-squared.)
+
+## Exercise 5
+Using the `vif()` function from the `{car}` package,
+
+a. Check for multicollinearity and report the variance inflation factors (VIFs) for each independent variable.
+
+b. Regress EMB capacity on the other covariates (GDP and EMB autonomy).
+
+c. Use the R-squared from part 5b to manually calculate the VIF for EMB capacity.
+
+d. Regress GDP on the other covariates (EMB autonomy and capacity).
+
+e. Use the R-squared from part 5d to manually calculate the VIF for GDP.
+
+f. Based on 5c and 5e, what explains the difference in VIF scores?
+
+## Exercise 6
+Estimate the same model as in 1 and add a dummy variable for civil war (`e_civil_war`). Interpret the results.
+
+## Exercise 7
+Estimate the same model as in 1 and add dummy variables for region (using `factor(e_regionpol_6C)`). Interpret the results.

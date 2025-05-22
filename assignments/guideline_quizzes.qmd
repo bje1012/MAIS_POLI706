@@ -1,0 +1,130 @@
+---
+title: "**POLI706: Advanced Methods of Political Analysis**"
+subtitle: |
+          | 
+          | Module Guideline Quizzes
+          |
+documentclass: article
+format: 
+  pdf:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+    code-block-bg: light
+    code-block-border-left: "#31BAE9"
+    linkcolor: highlight
+    urlcolor: highlight
+    highlight-style: atom-one
+#bibliography: W2.bib
+header-includes:
+  -  \usepackage{hyperref}
+  -  \usepackage{mathpazo}
+  -  \usepackage{bookmark}
+  -  \definecolor{light}{HTML}{EEEEEE}
+  -  \definecolor{highlight}{HTML}{9A2A2A}
+  -  \definecolor{dark}{HTML}{330033}
+  -  \usepackage{setspace}\singlespacing
+  -  \usepackage{fvextra}
+  -  \setmainfont[ItalicFont = {TeXGyrePagella-Italic}]{TeX Gyre Pagella}
+  -  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  #-  \setmonofont{Fira Code}[Contextuals=Alternate]
+  -  \makeatletter
+  -  \renewcommand*\verbatim@nolig@list{}
+  -  \makeatother
+# You have to install fira font and tex gyre pagella
+biblio-style: apsr
+geometry: margin=1in
+#fontfamily: mathpazo
+fontsize: 11pt
+link-citation: true
+indent: true
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, error = FALSE, 
+                      message = FALSE, warning = FALSE)
+# Load packages to import data
+library(knitr);library(patchwork);library(tidyverse)
+theme_set(theme_bw())
+```
+
+
+## Module 1: Introduction
+
+-   We have no guideline quizzes this week.
+
+## Module 2: Causal Inference Fundamentals
+
+#### Question 1. Explain mean causal effects based on King, Keohane, and Verba (1994). (Open)
+
+#### Question 2. According to the King, Keohane, and Verba (1994), which statement best captures the relationship between qualitative and quantitative research?
+
+1. **The differences between qualitative and quantitative research are mainly stylistic.**
+
+2. Quantitative research is more scientific than qualitative research.
+
+3. Qualitative research should be avoided in favor of quantitative methods.
+
+4. Both types of research follow fundamentally different logics of inference.
+
+#### Question 3. What is the difference between descriptive inference and causal inference? (Open)
+
+#### Question 4. The chapter "The Science in Social Science" aims to bridge the gap between [Blank 1] and qualitative research by applying a unified logic of inference to both. 
+
+-   [blank 1: quantitative]
+
+#### Question 5 Which one is not correct according to King, Keohane, and Verba (1994)?
+
+1. Scientific research has the following four characteristics: inference, public procedures, uncertain conclusion, and methods and rules.
+
+2. Conclusions rarely follow easily from a research design and data collected in accordance with it.
+
+3. **When making scientific inferences, certainty can be attained if we use highly advanced methods with ample empirical data.**
+
+4. The mean causal effect is the difference between the systematic component of a dependent variable when the causal variable takes on two different values.
+
+5. Two units are homogeneous when the expected values of the dependent variables from each unit are the same when our explanatory variable takes on a particular value.
+
+#### Question 6. Which of the following is emphasized as a crucial aspect of all good research in social science?
+
+1. Strict adherence to quantitative methods
+
+2. A focus on philosophical questions
+
+3. **The application of a unified logic of inference**
+
+4. Conducting surveys and fieldwork
+
+#### Question 7. Scientific research, according to the chapter, must involve an explicit effort to make [Blank 1] or/and [Blank 2] inferences that extend beyond the immediate data. 
+
+-   [Blank 1: descriptive;causal]
+-   [Blank 2: causal;descriptive]
+
+#### Question 8. What is the primary purpose of social science as described in the chapter three of King, Keohane, and Verba (1994)?
+
+1. To collect large amounts of data without making inferences
+
+2. To develop philosophical arguments about society
+
+3. **To make descriptive and causal inferences based on empirical data**
+
+4. To apply historical methods to modern issues
+
+#### Question 9. Which of the following challenges is particularly relevant when making causal inferences in social science?
+
+1. **The presence of confounding variables**
+
+2. The overabundance of data
+
+3. The lack of interest in causal relationships
+
+4. The simplicity of social phenomena
+
+#### Question 10 The [Blank 1] is a key concept in causal inference, involving the comparison of what actually happened with what could have happened under different conditions.
+
+-   [Blank 1: counterfactual]
+
+## Module 3. Randomization
+

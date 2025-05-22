@@ -1,0 +1,628 @@
+---
+output: 
+  stevetemplates::syllabus:
+    latex_engine: xelatex
+    dev: cairo_pdf
+geometry: margin=1in
+title: "**POLI706: Advanced Methods of Political Analysis**"
+author: |
+        | Matthew Charles Wilson
+        |
+date: |
+      | Fall 2024 \small (Updated: `r format(Sys.time(), '%D')`)
+email: "wilso929@mailbox.sc.edu"
+web: "matthewcharleswilson.com"
+officehours: "TBA"
+office: "#337 Gambrell"
+classroom: "TBA"
+classhours: "TBA"
+fontfamily: mathpazo
+fontsize: 10pt
+header-includes:
+   - \linespread{1.05}
+   - \usepackage{float}
+   - \floatplacement{figure}{H}
+   - \usepackage{longtable}
+   - \usepackage{array}
+   - \usepackage{natbib}
+   - \usepackage{xcolor}
+   - \usepackage{fontawesome5}
+   - \usepackage[bottom, hang,flushmargin]{footmisc}
+   - \renewcommand{\footnotelayout}{\onehalfspacing}
+   - \usepackage{url}
+   - \newcommand{\bookitem}{\item[\faBook]}
+   - \newcommand{\chapteritem}{\item[\faBookOpen]}
+   - \newcommand{\paperitem}{\item[\faFilePdf]}
+   - \newcommand{\discussitem}{\item[\faQuestionCircle]}
+   - \newcommand{\linkitem}{\item[\faLink]}
+   - \newcommand{\quizitem}{\item[\faLightbulb]}
+   - \newcommand{\youtubeitem}{\item[\faYoutube]}
+bibliography: references.bib
+bibliography-style: apsr
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+# Course Description
+
+POLI706 Advanced Methods of Political Analysis is a graduate-level course aimed
+at equipping students with advanced statistical methodologies and techniques
+essential for political analysis. The curriculum covers theoretical foundations
+and practical applications of causal inference, regression models, diagnostics,
+and cutting-edge statistical methods. Students will apply these techniques using
+statistical software to conduct sophisticated analyses relevant to modern
+political science research, enhancing their ability to interpret complex data
+and make substantive contributions to the field.
+
+# Course Objectives
+
+Upon completing this course, students will achieve the following learning
+outcomes:
+
+1.  *Develop a Sophisticated Grounding in World Affairs*\
+    Students will deepen their understanding of statistical methodologies as
+    they apply to global political dynamics, enhancing their expertise in a
+    specialized field relevant to international affairs.
+
+2.  *Critically Analyze International Policies and Quantitative Data*\
+    Through rigorous training in causal inference, regression analysis, and
+    advanced statistical methods, students will learn to critically assess and
+    interpret international policies and quantitative data within the framework
+    of political science.
+
+3.  *Effectively Communicate Discipline-Specific Knowledge*\
+    The course will equip students with the necessary skills to clearly
+    articulate findings from their analyses of international affairs, aiding
+    them in their professional development. This includes preparing them to
+    search for, identify, and apply for career opportunities such as internships
+    and employment positions in the field of international affairs, utilizing
+    their analytic skills and substantive knowledge.
+
+# Prerequisites
+
+Prior to enrolling in POLI706, students must fulfill the following
+prerequisites:
+
+-   Successful completion of POLI502 or an equivalent course is required. For
+    example, students are expected to have a comprehensive knowledge of
+    probability, distributions, and the relationships between samples and
+    populations, as covered in POLI502 or a similar course. This prerequisite
+    ensures that students grasp essential statistical concepts that are crucial
+    for advanced academic pursuits and have a fundamental understanding of using
+    R for statistical analysis.
+
+-   A high level of proficiency in R programming is essential. Students must
+    have prior experience in data manipulation, analysis, and visualization
+    using R to successfully engage with the coursework in POLI706.
+
+# Required Materials
+
+\definecolor{hightlightColor}{HTML}{FFFF66}
+
+The course requires regular access to a computer and focuses on programming in
+R.[^1] It primarily follows the material in three texts (strongly recommended):
+
+[^1]: R is a programming language/environment for statistical computing and
+    graphics that is available here: <https://www.r-project.org/.>\
+    Students may also wish to download and use the RStudio software application,
+    available here: <https://rstudio.com/products/rstudio/download/>
+
+-   Fox Jr., John. 2016. *Applied Regression Analysis and Generalized Linear
+    Models*, Third Edition. Thousand Oaks, CA: SAGE Publications (Hereafter
+    \colorbox{hightlightColor}{\it FOX}).
+
+-   Fox Jr., John and Sanford Weisberg. 2019. *An R Companion to Applied
+    Regression*, Third Edition. Thousand Oaks, CA: SAGE Publications (Hereafter
+    \colorbox{hightlightColor}{\it R Companion}).
+
+-   Ismay, Chester and Albert Y. Kim. 2024. *Statistical Inference via Data
+    Science: A ModernDive into R and the Tidyverse*, First Edition. Chapman and
+    Hall. You can access it at <https://moderndive.com/> (Hereafter
+    \colorbox{hightlightColor}{\it Moderndive}).
+
+The instructor will post additional reading materials on Blackboard.
+
+# Course Requirements
+
+## Course Formats
+
+This is a fully online course. Online classes are not easier than face-to-face
+lecture classes. To succeed in an online class, you must be extremely motivated
+and well-organized. You must purchase the required textbook listed above by the
+first day of the course. Other course materials are available via Blackboard
+("`Bb`"). Regular internet access is essential for successful completion of the
+course.
+
+1.  *Problem sets/do-file* (12 $\times$ 5% each = 60%, due by 11:59 PM on Friday
+    of the assigned week)
+
+    -   Following each class, students must complete the corresponding problem
+        set and submit it through Blackboard before 11:59 PM on Friday the same
+        week. Submissions must include both 1) descriptions of the commands and
+        interpretations of the output and 2) the code necessary to complete each
+        exercise in R. The assignment will be graded based on the correctness of
+        the code as well as on the thoroughness of description and
+        interpretation.
+
+    -   The document must be created in \LaTeX, though there are no restrictions
+        on the layout of the document. The notes must incorporate descriptions
+        of the commands and interpretations of the output, accompanying tables
+        and figures, and the code necessary to complete each exercise in R, for
+        that week’s problem set (which counts for the above assignment for that
+        week). Students may incorporate content from outside sources. The
+        assignment will be graded based on the thoroughness of the submission.
+
+2.  *Midterm/Final Exams* (2 $\times$ 20% each = 40%)
+
+    Students will assemble and analyze data in accordance with instructions,
+    producing a detailed discussion (including visualizations) of results. All
+    graphs need to be perfectly labeled, and all discussions need to be at
+    journal-quality level. The document must be created in \LaTeX, though there
+    are no restrictions on the layout of the document. Screenshots are
+    unacceptable.
+
+This is an entirely Web-based course. We have no face-to-face class meetings,
+and you will complete your work asynchronously – which simply means that you
+will be working on it at different times than your colleagues. You can log into
+the class to do your work at whatever time is convenient for you as long as you
+are meeting class deadlines.
+
+It is important to understand that this is not a self-paced class or an
+independent study. You will have assigned deadlines, and work must be submitted
+on time. You may not save up your assignments to complete in the last weeks or
+days of the semester. One critical part of this class is regular interaction
+with other students and with me, your instructor. Each assignment sequence must
+be completed on schedule – you can't work ahead or get behind and be successful.
+
+## Rubric
+
+The following grading scale maps the final grade-points to letter grades. A:
+90-100; B+: 87-89; B: 80-86; C+: 77-79; C:70-76; D+: 67-69; D: 60-66; F: 0-59.
+Standard rounding rules apply. Late work will lose ten points for every six
+hours that it is turned in late. Further, tests may be curved, but this is at
+the discretion of the instructor.
+
+## Other Grading Matters
+
+Most likely, there will be very few opportunities for extra credit. An extra
+point may be awarded for each of the two student evaluations if more than half
+of the class completes them: one evaluation is conducted at the midpoint, and
+the other at the end of the semester. Also, if you consent to let researchers
+use your data anonymously and complete baseline surveys on Blackboard, you may
+receive one extra point. In addition, you will get one extra credit point for
+participating in the survey experiment conducted by the Laboratory for
+Sociological Research at the University of South Carolina. You may receive one
+extra point for participating in their experiments at the end of the semester.
+Finally, you have an additional discussion post. There is a new post under
+"Discussions" that you can complete by 11:59 p.m. on April 19 2024. If you
+complete it, I will give you an extra credit. You will receive two extra credits
+for participating in 'discussion' through posts (replying to others and adding
+comments). If you don't, you won't receive any extra credit. Thus, the maximum
+extra credits available for POLI105 in Spring 2024 is six. However, there will
+be no opportunities for extra credit based on individual student requests. All
+extra credit opportunities will be available to every student equally, so please
+do not ask for personal exceptions.
+
+## Course Communication and Feedback
+
+I will communicate with you regarding grades and assignments. If you need to get
+in touch with me, the best method is via email. Generally, I will reply to
+emails within 24 hours and will provide feedback on assignments within 72 hours.
+You may also post questions pertaining to the course on the Blackboard
+Discussion Board. These questions will be answered within 24 hours.
+
+If you are having trouble with this course or its material, you should contact
+me via email to discuss the issues.
+
+Announcements will be posted to this course whenever necessary. If there is any
+other information that I think is important, then I will send it to your email
+address listed in Blackboard. It is your responsibility to ensure that your
+email account works properly in order to receive email.
+
+Below is how you check your email address in Blackboard:
+
+-   Access blackboard.sc.edu
+
+-   Click your name on the main Blackboard navigation panel on the left
+
+-   Review your email address.  By default, Blackboard uses your
+    university-issued email address
+
+Your email address in Blackboard coincides with your preferred university email.
+If you are unsure of your preferred email, [check your
+account](https://myaccount.sc.edu/) (myaccount.sc.edu). For more information on
+setting your preferred university email, please see the [How To Change Your
+Primary University Email
+Address](https://scprod.service-now.com/sp?id=kb_article_view&sysparm_article=KB0011464)
+Knowledge Base article
+(<https://scprod.service-now.com/sp?id=kb_article_view&sysparm_article=KB0011464>).
+
+## Technology Requirements
+
+Online lectures will be provided through Panopto. Therefore, you must have
+access to the internet to view/hear lectures.
+
+The lecture slides and links to articles, assignments, quizzes, and rubrics are
+located on the Blackboard site for the course. To participate in learning
+activities and complete assignments, you will need daily access, preferably at
+home, to:
+
+-   The internet and a computer which can be used at any time, controlled and
+    configured as required for assignments, access to resources, and for
+    communication. The computer should have a current operating system with
+    updates installed, plus speakers or headphones to hear lecture presentations
+    (transcripts provided);
+
+-   USC email account;
+
+-   A current web browser that is compatible with Blackboard (Google Chrome is
+    the recommended browser for Blackboard)
+
+    -   macOS™: Apple Safari, Google Chrome, Mozilla Firefox.
+
+    -   Windows™: Google Chrome, Microsoft Edge, Mozilla Firefox;
+
+    -   Blackboard Learning Management System
+
+All computers that connect to a university network must have current, up-to-date
+**antivirus software**. Antivirus software is included with Microsoft Windows;
+however, it is not included on Macs. If your computer does not have antivirus
+software, the [Carolina Tech
+Zone](https://sc.edu/about/offices_and_divisions/division_of_information_technology/end_user_services/available_technology_resources/carolina_tech_zone/)
+can assist you.
+
+If you have further questions or need help with the software, please contact the
+Division of Information Technology’s [Service
+Desk](https://www.sc.edu/about/offices_and_divisions/university_technology_services/support/servicedesk.php).
+
+## Additional Technical Skills Needed
+
+### R, RStudio, and Quarto
+
+-   Install latest version of R (version `4.0` or later).
+
+-   Install latest version of RStudio ([v2024.04.2+764 or
+    later](https://posit.co/download/rstudio-desktop/))
+
+-   Install Quarto ([v1.5.34 or greater](https://quarto.org/docs/download/))
+
+    -   See this
+        [guide](https://support.rstudio.com/hc/en-us/articles/115010737148-Using-the-RStudio-Terminal-in-the-RStudio-IDE)
+        for details on using the terminal
+
+    -   Install/Update `TinyTeX` for PDFs with `quarto install tool tinytex`
+
+    -   Install/Update Chromium with `quarto install tool chromium`
+
+## Technical Support
+
+If you have questions or problems related to your computer, software, or need
+technical support (including Blackboard support), please contact the Division of
+Information Technology (DoIT) Service Desk at (803) 777-1800, submit an online
+request through the [Self-Service Portal](https://scprod.service-now.com/sp) or
+visit the [Carolina Tech
+Zone](https://sc.edu/about/offices_and_divisions/division_of_information_technology/end_user_services/available_technology_resources/carolina_tech_zone/).
+The Service Desk is open Monday – Friday from 8:00 AM – 6:00 PM (Eastern Time).
+You may also visit DoIT’s website for [available technology
+resources](https://sc.edu/about/offices_and_divisions/division_of_information_technology/end_user_services/available_technology_resources/).
+
+If you have computer issues/problems, then there is a computer lab available at
+the Thomas Cooper Library and in certain campus classroom buildings. If you are
+not located in the Columbia, SC area, then most regional campuses and public
+libraries have computers for public use.
+
+## Accommodations
+
+If you are a person with a disability and anticipate needing any type of
+accommodation in order to participate in this class, please advise me and make
+appropriate arrangements with the Student Disability Resource Center. All
+disability accommodations must be approved through the Office of Student
+Disability Services. For more information, see
+\texttt{\href{https://sc.edu/about/offices_and_divisions/student_disability_resource_center/}{Student Disability Resource Center}}.
+Special accommodations are also available for veterans on duty and for parents.
+
+### Late Work/Make-up Policy
+
+All weekly assignments and exams are due by the deadline, as posted on the
+course schedule. Please plan accordingly and complete these assignments in
+advance of their deadlines to ensure any unanticipated circumstances do not
+result in a missed assignment.
+
+## Academic Dishonesty Policy
+
+I will enforce rigorous standards of academic integrity in all aspects of this
+course. For the detailed policy of the University of South Carolina regarding
+the definitions of acts considered to fall under academic dishonesty and
+possible ensuing sanctions, see the University Honor Code:
+\texttt{\href{http://www.sc.edu/policies/ppm/staf625.pdf}{Academic
+Responsibility -- The Honor Code}}. Should you have any questions about possibly
+improper research citations or references, or any activity that may be
+interpreted as academic dishonesty, please see me before the assignment is due
+to discuss the matter.
+
+## Personal Integrity
+
+I am committed to creating and fostering a positive learning and working
+environment based on open communication, mutual respect, and inclusion. I will
+not tolerate discrimination and harassment on the basis of identity or status,
+including race, color, national origin, religion, sex, gender, age, disability,
+sexual orientation, genetics, or veteran status. For more information on the
+University Student Non-Discrimination and Non-Harassment Policy, see
+\texttt{\href{https://www.sc.edu/about/offices_and_divisions/equal_opportunities_programs/documents/student_non-discrimination_and_non-harassment_policy.pdf}{Student Non-Discrimination and Non-Harassment Policy}}.
+If you want to speak to someone about an incident involving harassment, sexual
+assault, or interpersonal violence, you can call 803-777-8248 to talk to a
+trained interpersonal violence advocate.
+
+## Additional Information
+
+Students are responsible for knowing both university and course schedules.
+\newline The academic calendar is available at:
+\texttt{\href{https://sc.edu/about/offices_and_divisions/registrar/academic_calendars/2021-22_calendar.php}{University Registrar}}.
+
+For undergraduate academic regulations, see:
+\texttt{\href{http://bulletin.sc.edu/content.php?catoid=97&navoid=2830}{Undergraduate Academic Regulations}}.
+
+\newpage
+
+# Module Schedule
+
+All course deadlines are listed in Eastern Time Zone. Blackboard will record all
+deadlines in this time zone. If you are in a different time zone, then plan
+accordingly. Each week will begin on a [insert day of week] and will end on
+[insert day of week].
+
+In order to complete all of the module assignments, you will spend about 9 hours
+per week on the course material for a total of approximately 145 hours of
+course-related activities using Blackboard, discussion boards and blogs, and
+reading and reflecting on the texts. A list of weekly responsibilities/deadlines
+follows:
+
+-   Monday/Tuesday: Read assigned text(s) for week.
+
+-   Wednesday/Thursday: Watch lecture online.
+
+-   Friday midnight: Weekly assignment due dates
+
+Students must complete all assigned readings and provide a brief response to the
+weekly discussion question. \faBook: book, \faFilePdf: journal article or
+manuscript, \faLink: hyperlink, \faYoutube: video, and \faLightbulb: weekly
+assignments.
+
+\vspace{0.3cm}
+
+## Module 1. Introduction
+
+*Pre-test: What do you know and do not know?*
+
+*Overview of the course, requirements, and outline*
+
+*Introduction to statistical analysis in political science*
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 1. Statistical Models and Social Science." in \colorbox{hightlightColor}{\it FOX}.
+\end{itemize}
+```
+\vspace{0.3cm}
+
+## Module 2. Review of Basics
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 2. What Is Regression Analysis?" in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 3. Examining Data." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 4. Transforming Data." in \colorbox{hightlightColor}{\it FOX}.
+  \linkitem ``Chapter 7. Sampling'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/7-sampling.html}{https://moderndive.com/7-sampling.html}
+
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+
+## Module 3. Causal Inference Fundamentals
+
+```{=tex}
+\begin{itemize}
+  \youtubeitem \href{www.youtube.com/@BradyNealCausalInference}{Brady Neal - Causal Inference}
+  \begin{enumerate}
+    \item 1.3 - Correlation Does Not Imply Causation and Why (7:16)
+    \item 1.4 - What Does Imply Causation? Randomized Control Trials (8:30)
+    \item 2.2 - The Fundamental Problem of Causal Inference (4:10)
+    \item 2.3 - Association is Not Causation and Why (7:21)
+  \end{enumerate}
+  \chapteritem King, Gary, Robert O. Keohane, and Sidney Verba. 1995. ``Chapter 1. The Science in Social Science." In \textit{Designing Social Inquiry: Scientific Inference in Qualitative Research}.
+  \chapteritem King, Gary, Robert O. Keohane, and Sidney Verba. 1995. ``Chapter 3. Causality and Causal Inference." In \textit{Designing Social Inquiry: Scientific Inference in Qualitative Research}.
+  \quizitem Assignment 1 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+\vspace{0.3cm}
+
+## Module 4. Randomization
+
+```{=tex}
+\begin{itemize}
+  \youtubeitem \href{https://youtube.com/playlist?list=PL-uRhZ_p-BM5ovNRg-G6hDib27OCvcyW8&si=mYluOntm3K7PxkRM}{Mastering Econometrics with Joshua Angrist}
+  \begin{enumerate}
+    \item Econometrics: The Path from Cause to Effect (4:21)
+    \item Ceteris Paribus: Public vs. Private University (6:17)
+    \item Selection Bias: Will You Make More Going to a Private University? (9:33)
+    \item Randomized Trials: The Ideal Weapon (10:01)
+    \item How to Read Economics Research Papers: Randomized Controlled Trials (RCTs) (12:40)
+  \end{enumerate}
+  \quizitem Assignment 2 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+\vspace{0.3cm}
+
+## Module 5. Randomized Experiments and Obervational Studies
+
+```{=tex}
+\begin{itemize}
+  \youtubeitem \href{https://youtu.be/RSSFS9XWMG0?si=yDjEY0Df_KeDY6bw}{Research Channel|Observational and Experimental Studies (4:37)}
+  \youtubeitem Simplified version of the above: \href{https://youtu.be/Nh3ByyM2rzE?si=basfmE584jh4YXnI}{Whats Up Dude|What Are Observational And Experimental Studies In Statistics - Types Of Studies Explained (1:24)}
+  \chapteritem Rosenbaum, Paul R. 2017. ``Chapter 3. Causal Inference in Randomized Experiments." {\it Observation and Experiment: An Introduction to Causal Inference.}  Harvard University Press, Cambridge, MA, pp. 30-52.
+    \chapteritem Rosenbaum, Paul R. 2017. ``Chapter 5. Between Observational Studies and Experiments." {\it Observation and Experiment: An Introduction to Causal Inference.}  Harvard University Press, Cambridge, MA, pp. 65-99.
+  \quizitem Assignment 3 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+\vspace{0.3cm}
+
+## Module 6. Ordinary Least Squares I: Theory
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 5. Linear Least-Squares Regression." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 6. Statistical Inference for Regression." in \colorbox{hightlightColor}{\it FOX}.
+  \quizitem Assignment 4 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 7. Ordinary Least Squares II: Application
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 4. Fitting Linear Models." in \colorbox{hightlightColor}{\it R Companion}.
+  \linkitem ``Chapter 5. Basic Regression'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/5-regression.html}{https://moderndive.com/5-regression.html}
+  \linkitem ``Chapter 6. Multiple Regression'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/6-multiple-regression.html}{https://moderndive.com/6-multiple-regression.html}
+  \chapteritem ``Chapter 5. Coefficients, Standard Errors, Confidence Intervals, and Hypothesis Tests." in \colorbox{hightlightColor}{\it R Companion}.
+  \quizitem Assignment 5 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 8. Ordinary Least Squares III: Matrix Algebra
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 9. Statistical Theory for Linear Regression." in \colorbox{hightlightColor}{\it FOX}.
+  \quizitem Assignment 6 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+
+\vspace{0.3cm}
+
+## Module 9. Generalized Linear Modeling and Maximum Likelihood I : Introduction
+
+```{=tex}
+\begin{itemize}
+  \youtubeitem \href{https://youtu.be/pYxNSUDSFH4?si=U-1s4bJmct2EDaxL}{Probability is not Likelihood. Find out why!!! from StatQueest with Josh Starmer} (5:00)
+  \paperitem Etz, Alexander. 2018. ``Introduction to the Concept of Likelihood and Its Applications." {\it Advances in Methods and  Practices in Psychological Science}, 1(1): 60-69.
+  \chapteritem ``Chapter 14. Logit and Probit Models for Categorical Response Variables." in \colorbox{hightlightColor}{\it FOX}.
+  \quizitem Assignment 7 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 10. Generalized Linear Modeling and Maximum Likelihood II
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 15. Generalized Linear Models."  in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 6. Fitting Generalized Linear Models."  in \colorbox{hightlightColor}{\it R Companion}.
+  \quizitem Assignment 8 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 11. Type of Variables and Relationships
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 7. Dummy-Variable Regression." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 8. Analysis of Variance." in \colorbox{hightlightColor}{\it FOX}.
+  \quizitem Assignment 9 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 12. Interactions and Marginal Effects
+
+*Interactions between qualitative or/and quantitative variables*
+
+```{=tex}
+\begin{itemize}
+  \paperitem Brambor, Thomas, William Clark, and Matt Golder, 2006. ``Understanding Interaction Models: Improving Empirical Analyses." {\it Political Analysis}, 14(1): .63-82.
+\end{itemize}
+```
+*How can we show the substantive implication of interactions?*
+
+```{=tex}
+\begin{itemize}
+  \paperitem King, Gary, Michael Tomz, and Jason Wittenberg. 2000. ``Making the Most of Statistical Analyses." {\it American Journal of Political Science}, 44(2): 347-361. \textit{Re-read}.
+  \linkitem Arel-Bundock Vincent, Noah Greifer and Andrew Heiss. ``How to Interpret Statistical Models Using marginaleffects in R and Python." {\it Journal of Statistical Software}. Forthcomming from \href{https://marginaleffects.com/#articlehttps://marginaleffects.com/#articlehttps://marginaleffects.com/#article}{Marginal Effect Zoo}.
+\end{itemize}
+```
+*Assumptions on Interactions*
+
+```{=tex}
+\begin{itemize}
+  \paperitem Hainmueller, Jens, Jonathan Mummolo, and Yiqing Xu. 2019. ``How Much Should We Trust Estimates from Multiplicative Interaction Models? Simple Tools to Improve Empirical Practice." {\it Political Analysis}, 27(2): 163–92.
+  \paperitem Beiser-McGrath, Janina, and Liam F. Beiser-McGrath. 2023. ``The Consequences of Model Misspecification for the Estimation of Nonlinear Interaction Effects." {\it Political Analysis}, 31(2): 278–87.
+  \quizitem Assignment 10 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 13. Inference and Prediction I: Non-Parametic Bootstrapping
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 6. Statistical Inference for Regression." in \colorbox{hightlightColor}{\it FOX}. {\it Re-read}.
+  \linkitem ``Chapter 8. Bootstrapping and Confidence Intervals'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/8-confidence-intervals.html}{https://moderndive.com/8-confidence-intervals.html}
+  \quizitem Assignment 11 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 14. Inference and Prediction II: Parametric Bootstrapping
+
+```{=tex}
+\begin{itemize}
+  \paperitem King, Gary, Michael Tomz, and Jason Wittenberg. 2000. ``Making the Most of Statistical Analyses." {\it American Journal of Political Science}, 44(2): 347-361.
+  \linkitem ``Chapter 9. Hypothesis Testing'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/9-hypothesis-testing.html}{https://moderndive.com/9-hypothesis-testing.html}
+  \linkitem ``Chapter 10. Inference for Regression'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/10-inference-for-regression.html}{https://moderndive.com/10-inference-for-regression.html}
+  \quizitem Assignment 12 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 15. Diagnostics
+
+*Model fit, checking models. All models are wrong, some are useful.*
+
+```{=tex}
+\begin{itemize}
+  \chapteritem ``Chapter 11. Unusual and Influential Data." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 12. Diagnosing Non-Normality, Nonconstant Error Variance, and Nonlinearity." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 13. Collinearity and Its Purported Remedies." in \colorbox{hightlightColor}{\it FOX}.
+  \chapteritem ``Chapter 22. Section 22.1. Model Selection." in \colorbox{hightlightColor}{\it FOX}.
+  \paperitem Clarke, Kevin A. 2007. ``A Simple Distribution-Free Test for Nonnested Model Selection." {\it Political Analysis},  15(3): 347–63.
+  \quizitem Assignment 13 (due by 11:59 PM on Friday)
+\end{itemize}
+```
+
+\vspace{0.3cm}
+
+## Module 16. And Beyond
+
+*Extensions; Summary and conclusion*
+
+*Introduction to Non-linearity*
+
+```{=tex}
+\begin{itemize}
+  \quizitem Final Exam (due by 11:59 PM on Sunday)
+\end{itemize}
+```

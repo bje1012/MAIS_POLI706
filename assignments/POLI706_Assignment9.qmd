@@ -1,0 +1,120 @@
+---
+title: "**POLI706: Advanced Methods of Political Analysis**"
+subtitle: |
+          | 
+          | Problem set 9
+          |
+documentclass: article
+format: 
+  pdf:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+    code-block-bg: light
+    code-block-border-left: "#31BAE9"
+    linkcolor: highlight
+    urlcolor: highlight
+    highlight-style: atom-one
+bibliography: ../references/references.bib
+header-includes:
+  -  \usepackage{hyperref}
+  -  \usepackage{mathpazo}
+  -  \usepackage{bookmark}
+  -  \definecolor{light}{HTML}{EEEEEE}
+  -  \definecolor{highlight}{HTML}{9A2A2A}
+  -  \definecolor{dark}{HTML}{330033}
+  -  \usepackage{setspace}\singlespacing
+  -  \usepackage{fvextra}
+  -  \setmainfont[ItalicFont = {TeXGyrePagella-Italic}]{TeX Gyre Pagella}
+  -  \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+  #-  \setmonofont{Fira Code}[Contextuals=Alternate]
+  -  \makeatletter
+  -  \renewcommand*\verbatim@nolig@list{}
+  -  \makeatother
+# You have to install fira font and tex gyre pagella
+biblio-style: apsr
+geometry: margin=1in
+#fontfamily: mathpazo
+fontsize: 11pt
+link-citation: true
+indent: true
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, error = FALSE, 
+                      message = FALSE, warning = FALSE)
+# Load packages to import data
+library(ezpickr);library(knitr);library(patchwork);library(tidyverse)
+```
+
+## Exercise 1
+
+Read @brambor2006, and take notes. Lots of them.
+
+## Exercise 2
+
+Read @king2000, and take notes. Lots of them.
+
+## Exercise 3
+
+Some scholars have posited the "More Murder in the Middle" (MMM) effect, suggesting that as democracy develops, the level of human rights repression initially increases, but after surpassing a certain threshold, it begins to decrease. To verify the MMM hypothesis, perform a regression analysis and create a graph that includes the confidence intervals to illustrate the estimated levels of human rights based on different levels of democracy. Clearly identify the turning point in your analysis.
+
+1.  Run the following R codes and load necessary packages to use.
+
+2.  Load sample data for the assignment: `data_assignment9.csv`
+
+3.  Use base R functions to answer the questions.
+
+| Variables       | Description                                            | Source                       |
+|------------------|-----------------------------------|-------------------|
+| `country_name`  | Name of country                                        | V-Dem                        |
+| `COWcode`       | Country code of Correlates of War                      | V-Dem                        |
+| `year`          | Year                                                   | V-Dem                        |
+| `hrs`           | Human Rights Scores                                    | See @fariss2014              |
+| `v2x_polyarchy` | Electoral Democracy Index                              | V-Dem                        |
+| `e_gdppc`       | Estimated GDP per capita                               | V-Dem                        |
+| `e_pop`         | Estimated population                                   | V-Dem                        |
+| `wdi_trade`     | Trade openness measured by (imports + exports)/GDP (%) | World Development Indicators |
+| `ucdp_type3`    | Number of interstate armed conflicts                   | UCDP Dyadic Dataset          |
+
+: Variables in the sample data
+
+a.  Take the natural logarithm of GDP per capita and population, and store the new variables in your sample. Then, make a binary variable of civil war experience indicating if a country experiences internal conflict once, code 1 otherwise code 0.
+
+```{r}
+#| echo: false
+#| eval: true
+#| results: hide
+data_assignment9 <- read_csv("data_assignment9.csv")
+data_assignment9 |> 
+  mutate(lngdppc = log(e_gdppc),
+         lnpop = log(e_pop),
+         civilwar = if_else(is.na(ucdp_type3) | ucdp_type3 == 0L, 0L, 1L)) ->
+  assignment9
+
+```
+
+b.  Estimate a model to test the MMM effect using the sample data, which takes the form of $Y = \beta_0 + \beta_1 X + \beta_2X^2 + \beta_3 \mathrm{Controls} + \epsilon$. . Provide the results in a table with appropriate labels and format. Explain how the model can test the MMM effect.
+
+```{r}
+#| echo: false
+#| eval: true
+#| results: hide
+lm(hrs ~ v2x_polyarchy + I(v2x_polyarchy^2) +
+     lngdppc + lnpop + civilwar, data =  assignment9) -> mmm
+
+mmm |> texreg::screenreg()
+
+```
+
+b.  Re-read @brambor2006 and @king2000. From the Question 2a, visualize the results to ilustrate the marginal effect of democracy on human rights. Clearly identify the turning point in your analysis.
+
+c.  Re-read @brambor2006 and @king2000. From the Question 2a, visualize the results to llustrate the estimated levels of human rights based on different levels of democracy. Clearly identify the turning point in your analysis. **Hint!** You can estimate the levels of human rights based on different levels of democracy holding other covariates constant.
+
+## Exercise 4
+
+According to @hainmueller2019, what should you do next?
+
+## References
