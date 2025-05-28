@@ -1,0 +1,79 @@
+---
+title: "R Markdown Tutorial"
+author: "Jieun Byeon"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: pdf_document
+linkcolor: blue
+urlcolor: blue
+fontfamily: mathpazo
+fontsize: 12pt
+spacing: single
+---
+
+# R Markdown
+
+Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document
+
+![Knit button](/Users/jieun/Desktop/knit.png)
+
+# Download and Install \LaTeX{}
+
+If you would like to create PDF documents from R Markdown, you will need to have a \LaTeX{} distribution installed (can be downloaded [here](https://tug.org/mactex/)). R Markdown users should also install TinyTeX, which can be installed through RStudio. \LaTeX{} provides the robust typesetting and formatting capabilities needed to produce well-structured documents. When you knit an R Markdown file to PDF, the process involves Pandoc converting the markdown content into \LaTeX{} code, which \LaTeX{} then compiles into a PDF.
+
+```{=tex}
+\clearpage
+\newpage
+```
+# Create a R Markdown File
+
+![Create a R Markdown File 1](/Users/jieun/Desktop/1.png){width="40%"}
+
+-   Step 1: Click the icon on the top, and then select R Markdown
+
+![Create a R Markdown File 2](/Users/jieun/Desktop/2.png){width="60%"}
+
+-   Step 2: In the dialog that appears, fill in the Title and Author fields, choose Document as the type of output (default is HTML), and click OK.
+
+# YAML
+
+![YAML Sample](/Users/jieun/Desktop/YAML.png){width="60%"}
+
+YAML is the metadata that tells R Markdown exactly how to process or display the document. You can adjust the font, font size, and spacing by using fontfamily: , fontsize: , and spacing: . For more options, please refer to [this resource](https://education.rstudio.com/blog/2019/10/tools-for-teaching-yaml-with-ymlthis/).
+
+# Code Chunks
+
+You can quickly insert chunks into your file with the keyboard shortcut Ctrl + Alt + I (OS X: Cmd + Option + I)
+
+![R Chunk 1](/Users/jieun/Desktop/chunk1.png){width="100%"}
+
+To hide your code but display the output in your PDF file, use echo=FALSE. If you wish to exclude both the code and its output from the PDF, use include=FALSE.
+
+![R Chunk 2](/Users/jieun/Desktop/chunk2.png){width="100%"}
+
+# Examples
+
+Calculation
+
+```{r}
+(4 * 30 + 6)^0.5
+```
+
+Creating an object
+
+```{r}
+X1 <- 10
+X2 <- 20
+X3 <- X1 * X2
+
+X3
+```
+
+
+
+# Homework submission rules
+
+1.  Submissions must include both responses to the questions and/or interpretations of the output and the code necessary to complete each exercise in R.
+
+2.  Submissions must be knitted/compiled to a PDF file.

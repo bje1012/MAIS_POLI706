@@ -134,7 +134,7 @@ first day of the course. Other course materials are available via Blackboard
 ("`Bb`"). Regular internet access is essential for successful completion of the
 course.
 
-1.  *Problem sets/do-file* (12 $\times$ 5% each = 60%, due by 11:59 PM on Friday
+1.  *Problem sets/do-file* (12 $\times$ 4% each = 48%, due by 11:59 PM on Friday
     of the assigned week)
 
     -   Following each class, students must complete the corresponding problem
@@ -152,15 +152,16 @@ course.
         that week’s problem set (which counts for the above assignment for that
         week). Students may incorporate content from outside sources. The
         assignment will be graded based on the thoroughness of the submission.
+        
+2. *Quizzes* (12 $\times$ 1% each = 12%, due by 11:59 PM on Friday
+    of the assigned week)
+    
+    -  Following each class, students must complete the corresponding quizzes on the Blackboard before 11:59 PM on Friday the same week. The quiizes will feature theory-based questions to check whether students have thoroughly read the reading materials.
 
-2.  *Midterm/Final Exams* (2 $\times$ 20% each = 40%)
 
-    Students will assemble and analyze data in accordance with instructions,
-    producing a detailed discussion (including visualizations) of results. All
-    graphs need to be perfectly labeled, and all discussions need to be at
-    journal-quality level. The document must be created in \LaTeX, though there
-    are no restrictions on the layout of the document. Screenshots are
-    unacceptable.
+3.  *Midterm/Final Exams* (2 $\times$ 20% each = 40%)
+
+    -   Students will assemble and analyze data in accordance with instructions, producing a detailed discussion (including visualizations) of results. All graphs need to be perfectly labeled, and all discussions need to be at journal-quality level. The document must be created in \LaTeX, though there are no restrictions on the layout of the document. Screenshots are unacceptable.
 
 This is an entirely Web-based course. We have no face-to-face class meetings,
 and you will complete your work asynchronously – which simply means that you
@@ -514,7 +515,6 @@ assignments.
   \youtubeitem \href{https://youtu.be/pYxNSUDSFH4?si=U-1s4bJmct2EDaxL}{Probability is not Likelihood. Find out why!!! from StatQueest with Josh Starmer} (5:00)
   \paperitem Etz, Alexander. 2018. ``Introduction to the Concept of Likelihood and Its Applications." {\it Advances in Methods and  Practices in Psychological Science}, 1(1): 60-69.
   \chapteritem ``Chapter 14. Logit and Probit Models for Categorical Response Variables." in \colorbox{hightlightColor}{\it FOX}.
-  \quizitem Assignment 7 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -526,7 +526,7 @@ assignments.
 \begin{itemize}
   \chapteritem ``Chapter 15. Generalized Linear Models."  in \colorbox{hightlightColor}{\it FOX}.
   \chapteritem ``Chapter 6. Fitting Generalized Linear Models."  in \colorbox{hightlightColor}{\it R Companion}.
-  \quizitem Assignment 8 (due by 11:59 PM on Friday)
+  \quizitem Assignment 7 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -538,7 +538,7 @@ assignments.
 \begin{itemize}
   \chapteritem ``Chapter 7. Dummy-Variable Regression." in \colorbox{hightlightColor}{\it FOX}.
   \chapteritem ``Chapter 8. Analysis of Variance." in \colorbox{hightlightColor}{\it FOX}.
-  \quizitem Assignment 9 (due by 11:59 PM on Friday)
+  \quizitem Assignment 8 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -567,7 +567,7 @@ assignments.
 \begin{itemize}
   \paperitem Hainmueller, Jens, Jonathan Mummolo, and Yiqing Xu. 2019. ``How Much Should We Trust Estimates from Multiplicative Interaction Models? Simple Tools to Improve Empirical Practice." {\it Political Analysis}, 27(2): 163–92.
   \paperitem Beiser-McGrath, Janina, and Liam F. Beiser-McGrath. 2023. ``The Consequences of Model Misspecification for the Estimation of Nonlinear Interaction Effects." {\it Political Analysis}, 31(2): 278–87.
-  \quizitem Assignment 10 (due by 11:59 PM on Friday)
+  \quizitem Assignment 9 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -579,7 +579,7 @@ assignments.
 \begin{itemize}
   \chapteritem ``Chapter 6. Statistical Inference for Regression." in \colorbox{hightlightColor}{\it FOX}. {\it Re-read}.
   \linkitem ``Chapter 8. Bootstrapping and Confidence Intervals'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/8-confidence-intervals.html}{https://moderndive.com/8-confidence-intervals.html}
-  \quizitem Assignment 11 (due by 11:59 PM on Friday)
+  \quizitem Assignment 10 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -592,7 +592,7 @@ assignments.
   \paperitem King, Gary, Michael Tomz, and Jason Wittenberg. 2000. ``Making the Most of Statistical Analyses." {\it American Journal of Political Science}, 44(2): 347-361.
   \linkitem ``Chapter 9. Hypothesis Testing'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/9-hypothesis-testing.html}{https://moderndive.com/9-hypothesis-testing.html}
   \linkitem ``Chapter 10. Inference for Regression'' in \colorbox{hightlightColor}{\it Moderndive}: \href{https://moderndive.com/10-inference-for-regression.html}{https://moderndive.com/10-inference-for-regression.html}
-  \quizitem Assignment 12 (due by 11:59 PM on Friday)
+  \quizitem Assignment 11 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
@@ -609,7 +609,7 @@ assignments.
   \chapteritem ``Chapter 13. Collinearity and Its Purported Remedies." in \colorbox{hightlightColor}{\it FOX}.
   \chapteritem ``Chapter 22. Section 22.1. Model Selection." in \colorbox{hightlightColor}{\it FOX}.
   \paperitem Clarke, Kevin A. 2007. ``A Simple Distribution-Free Test for Nonnested Model Selection." {\it Political Analysis},  15(3): 347–63.
-  \quizitem Assignment 13 (due by 11:59 PM on Friday)
+  \quizitem Assignment 12 (due by 11:59 PM on Friday)
 \end{itemize}
 ```
 
