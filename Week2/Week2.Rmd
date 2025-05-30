@@ -1,0 +1,335 @@
+---
+title: "Review of Basics"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(kernlab)
+library(showtext)
+```
+
+## Revisiting the Basics – Descriptive and Bivariate Statistics
+
+Before we dive deeper into modeling techniques, it's important to make sure we're all on the same page with the foundational tools you should have mastered in POLI 502 (or a similar introductory methodology course). In the first part of this module, we'll review univariate statistics—such as distributions, measures of central tendency, variance, and standard deviation. Then, in the second part, we’ll move on to bivariate statistics, including covariance, correlation, and t-tests. These are core statistical ideas that form the bedrock of all quantitative research, and we’ll be relying on them throughout the rest of the semester. Even if they feel familiar, a clear refresher will help solidify your understanding—and might even add some clarity or depth you didn’t quite get the first time around!
+
+## Part 1: Understanding Univariate Statistics
+
+Before we start exploring relationships between variables, we need to understand how each variable behaves on its own. This is where univariate statistics come in. “Uni” means one—so univariate statistics are all about analyzing a single variable at a time. Whether it’s income, education level, or approval rating, we want to understand what that variable looks like: what’s typical, how much it varies, and how its values are distributed. Let’s walk through the key concepts you'll need to remember.
+
+### What Is a Distribution?
+
+A distribution tells us how the values of a variable are spread out across all the observations. Think of it like a snapshot of how frequently each value shows up. For example, if you're looking at the age of survey respondents, is everyone around the same age? Are there more people in their 20s or 60s? Are there any outliers—like someone who's 99?
+
+You can visualize distributions using:
+
+Histograms (for numeric variables)
+
+Bar charts (for categorical variables)
+
+Box plots (great for spotting outliers)
+
+Distributions help us spot skew (is it lopsided?), modality (one peak or multiple?), and unusual values that could affect analysis later.
+
+### Types of Variables
+
+Different types of variables require different kinds of summaries and visualizations. Knowing what type of variable you're working with helps you choose the right statistical tools. Here's a quick refresher:
+
+- **Binary Variables**: These variables have only two possible values, typically coded as 0 and 1 (e.g., yes/no, success/failure, male/female).
+
+- **Nominal Variables**: These are categorical variables with no inherent order (e.g., country, religion, party ID).
+
+- **Ordinal Variables**: These have a natural order, but the differences between categories are not necessarily equal (e.g., survey responses like "strongly disagree" to "strongly agree"). 
+
+- **Interval Variables**: Also called continuous variables, these have meaningful numerical values and equal intervals between values (e.g., age, income, temperature).
+
+Here, I will show the examples of each type of data with the sample V-Dem dataset. You can find the dataset file and the codebook on Blackboard.
+
+```{r, results='hide', echo=TRUE, message=FALSE, warning=FALSE}
+# Load packages
+library(dplyr)
+library(tidyverse)
+```
+
+```{r}
+# Load data (without NA values)
+vdem <- read.csv("vdem.csv") %>% drop_na()
+```
+
+#### **Binary variable**
+
+```{r}
+unique(vdem$e_civil_war)
+```
+
+`e_civil_war` is a binary variable which indicates there was an ongoing civil war (1) or not (0).
+
+#### **Nominal Variable**
+
+```{r}
+unique(vdem$e_regionpol_6C)
+```
+
+The variable `e_regionpol_6C` codes the political region to which a country belongs. The values correspond to the following regions:
+
+1 = Eastern Europe and Central Asia
+
+2 = Latin America and the Caribbean
+
+3 = The Middle East and North Africa
+
+4 = Sub-Saharan Africa
+
+5 = Western Europe and North America
+
+6 = Asia Pacific
+
+Each of these values is simply a label for a region—1 is not “less than” 2, and 6 is not “greater than” 5. They represent distinct categories without any inherent order. That’s what makes this a nominal variable.
+
+#### **Ordinal Variable**
+
+```{r}
+sort(unique(vdem$v2elembaut_ord))
+```
+
+`v2elembaut_ord` captures how independently the Election Management Body functions when applying election laws and rules. The variable is ordinal—the numbers represent categories that follow a meaningful order, even if the intervals between them aren't necessarily equal.
+
+#### **Interval Variable**
+
+```{r}
+head(vdem$v2x_polyarchy, 10)
+```
+
+`v2x_polyarchy` represents Electoral Democracy Index. Because the values fall along a continuous scale and can take on many decimal points, `v2x_polyarchy` is a interval variable.
+
+### Measures of Central Tendency
+
+This is about figuring out the “middle” or “typical” value in a variable:
+
+- **Mean**: This is the average—the sum of all values divided by the number of values. It’s great when your data are symmetrical but can be thrown off by outliers (e.g., one billionaire in a dataset about income).
+
+- **Median**: The middle value when data are ordered. It’s more robust to extreme values and a better summary when the distribution is skewed.
+
+- **Mode**: The most common value. This is especially useful for categorical variables.
+
+#### **For binary varable**:
+
+```{r, fig.align='center', fig.width= 6}
+vdem %>%
+  ggplot(aes(x = factor(e_civil_war))) +
+  geom_bar(fill = "#275D8E") +
+  labs(title = "Binary Variable\n", x = "Civil War", y = "Frequency\n") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+**Mean (Proportion)**:
+
+When a binary variable is coded as 0 or 1, the mean is equal to the proportion of 1's in the data. For example, for the civil war variable, the mean is:
+
+```{r}
+mean(vdem$e_civil_war)
+```
+
+This means that approximately 5.04% of the observations experienced a civil war (coded as 1), while the remaining 94.96% did not (coded as 0).
+
+**Mode**:
+
+The mode is the value that occurs most frequently in the data. For a binary variable, which only takes on values 0 or 1, the mode will be either 0 or 1, depending on which one appears more often.
+In the case of the civil war variable, the mode is 0,  meaning that more observations in the dataset represent countries not experiencing civil war.
+
+#### **For nominal variable**:
+
+```{r, fig.align='center', message=FALSE}
+# For more organized labels 
+library(scales)
+
+# Change the numbers into the names of regions
+vdem %>% 
+  mutate(region = case_when(e_regionpol_6C == 1 ~ "E. Europe and Central Asia",
+                            e_regionpol_6C == 2 ~ "Latin America and the Caribbean",
+                            e_regionpol_6C == 3 ~ "The Middle East and N. Africa",
+                            e_regionpol_6C == 4 ~ "Sub-Saharan Africa",
+                            e_regionpol_6C == 5 ~ "W. Europe and N. America",
+                            e_regionpol_6C == 6 ~ "Asia Pacific",
+                            )) %>%
+# Bar chart for nominal variable
+ggplot(aes(x = region)) +
+  geom_bar(fill = "#275D8E") +
+  labs(title = "Nominal Variable\n", x = "\nRegion", y = "Frequency\n") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(hjust = 0.5, size = 8))
+```
+
+The **mode** is often the most meaningful measure of central tendency for nominal variables, since it tells us which category appears most frequently. In our sample dataset, Latin America and the Caribbean is the mode of the e_regionpol_6C variable, meaning it is the most common region represented in the data. This makes sense for nominal variables, where we cannot compute a meaningful average or median, but we can still identify the most frequently occurring category.
+
+#### **For ordinal variable**:
+
+```{r, fig.align='center'}
+# Find the median value
+med_val <- median(vdem$v2elembaut_ord)
+
+# Plot the variable
+vdem %>%
+  mutate(v2elembaut_ord = factor(v2elembaut_ord),
+         is_median = ifelse(v2elembaut_ord == as.character(med_val), "Median", "Other")) %>%
+  ggplot(aes(x = v2elembaut_ord, fill = is_median)) +
+  geom_bar() +
+  scale_fill_manual(values = c("Median" = "#E69F00", "Other" = "#275D8E")) +
+  labs(title = "Ordinal Variable\n", x = "\nEMB Autonomy", y = "Frequency\n", fill = NULL) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+For ordinal data, the most appropriate measure of central tendency is the median. The median represents the middle value when the data is ordered, and it is not affected by extreme values or outliers, which can skew the mean. While the mode can also be used, the median provides a more informative summary of the center of the ordinal data.
+
+In our sample data, the median value is:
+
+```{r}
+median(vdem$v2elembaut_ord)
+```
+
+This means that 1 is the middle category of the v2elembaut_ord variable—indicating that, when all values are ordered, half of the observations fall below this category and half fall above it. 
+
+#### **For interval variable**:
+
+```{r, fig.align='center'}
+p1 <- vdem %>%
+  ggplot(aes(x = v2x_polyarchy)) +
+  geom_histogram(color = "white", fill = "gray", bins = 25) +
+  geom_vline(aes(xintercept = mean(v2x_polyarchy, na.rm = TRUE), 
+                 color = "mean"), linetype = "dashed") +
+  geom_vline(aes(xintercept = median(v2x_polyarchy, na.rm = TRUE), 
+                 color = "median"), linetype = "dashed") +
+  labs(title = "Interval Variable\n", x = "", y = "Frequency\n") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_manual(name = "", values = c(median = "#E69F00", mean = "#275D8E"))
+
+p2 <- vdem %>%
+  ggplot(aes(x="", y = v2x_polyarchy)) +
+  geom_boxplot(fill = "gray", color = "black") + 
+  coord_flip() +
+  labs(x = "", y = "\nElectoral Democracy Index") +
+  theme_bw() +
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+library(patchwork)
+p1 + p2 + plot_layout(nrow = 2, heights = c(2, 1))
+```
+
+In the case of interval variable, both the mean and the median are commonly used to describe the central tendency of the data. But which one is more appropriate depends on the shape of the distribution and whether there are outliers.
+
+The **mean** is the arithmetic average—add up all the values and divide by the number of observations. It uses all the values in the dataset, which makes it sensitive to extreme values (outliers). When the data is symmetrically distributed, the mean gives a very good summary of the "center" of the data. In contrast, the **median** is less affected by outliers or skewed distributions, so it's a better choice when the data is not symmetrical or contains a few extreme values.
+
+In our sample data, the mean and median values are:
+
+```{r}
+mean(vdem$v2x_polyarchy)
+median(vdem$v2x_polyarchy)
+```
+
+The fact that the mean is higher than the median suggests that the distribution of v2x_polyarchy is right-skewed. In other words, a few countries with very high democracy scores are pulling the average up, even though the majority of countries score lower. In such cases, the median may provide a better sense of what is "typical" or common among countries, while the mean can be useful for understanding the overall level across the dataset.
+
+### Variance and Standard Deviation (SD)
+
+So far, we’ve talked about the mean, median, and mode as ways to describe the “center” of a distribution. But what about the spread—how far values are from the center? That’s where variance and standard deviation (SD) come in. These two measures help us understand how dispersed the values are in a dataset.
+
+Variance is calculated by taking the difference between each value and the mean, squaring those differences, and then averaging the squared differences. This gives us a sense of how “spread out” the data is, though the result is in squared units—which can make it harder to interpret directly.
+
+$$
+\text{Variance} = s^2 = \frac{1}{n - 1} \sum_{i=1}^{n} (x_i - \bar{x})^2
+$$
+
+where 
+
+- $x_i$ is the $i$-th observation,  
+
+- $\bar{x}$ is the mean of all observations,  
+
+- $n$ is the number of observations.
+
+The standard deviation is simply the square root of the variance. 
+
+$$
+\text{Standard Deviation} = s = \sqrt{s^2}
+$$
+
+Because it’s in the same units as the original data, it’s easier to interpret. If the SD is small, the values are clustered close to the mean. If it's large, the values are more spread out. 
+
+```{r}
+sd(vdem$v2x_polyarchy)
+```
+
+The mean of v2x_polyarchy is 0.39 and the standard deviation is 0.25. This tells us that, on average, most countries in the dataset have electoral democracy scores within about ±0.25 points of the mean.
+
+```{r, fig.align='center'}
+# Calculate mean and SD
+mean_val <- mean(vdem$v2x_polyarchy, na.rm = TRUE)
+sd_val <- sd(vdem$v2x_polyarchy, na.rm = TRUE)
+
+# Plot
+vdem %>%
+  ggplot(aes(x = v2x_polyarchy)) +
+  geom_histogram(color = "white", fill = "gray", bins = 25) +
+  geom_vline(xintercept = mean_val, color = "red", linetype = "dashed") +
+  # Shaded area for ±2 SD
+  annotate("rect",
+           xmin = max(0, mean_val - 2 * sd_val), 
+           xmax = min(1, mean_val + 2 * sd_val),
+           ymin = 0,
+           ymax = Inf,
+           alpha = 0.2,
+           fill = "#E69F00") +
+  labs(title = "Electoral Democracy Index\n", x = "\nElectoral Democracy Index",
+       y = "Frequency\n") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5))
+```
+
+In the histogram above, we visualize the distribution of the Electoral Democracy Index across countries in our dataset. The gray bars show how frequently different democracy scores occur, while the red dashed line marks the mean score. The green shaded region represents the range within two standard deviations (±2 SD) from the mean. This range often captures about 95% of the data when the distribution is normal (bell-shaped), but in our case, the data is not normally distributed.
+
+
+## Part 2: Understanding Bivariate Statistics
+
+Once we understand individual variables, the next step is to look at relationships between two variables. This is where bivariate statistics come in.
+
+### Covariance and Correlation
+
+Covariance: This measures how two variables change together. A positive covariance means that as one variable increases, so does the other. A negative covariance means the opposite. However, covariance is hard to interpret on its own because it depends on the units of the variables.
+
+Correlation: This standardizes covariance into a unit-free measure. Correlation values range from -1 to 1 and tell us the strength and direction of a linear relationship. A correlation close to 0 suggests little to no linear relationship.
+
+
+### T-tests
+
+A t-test compares the means of two groups. For example, we might want to know if men and women have significantly different average incomes. T-tests help us assess whether the difference we see is likely due to chance or reflects a real difference in the population.
+
+
+## What’s Next?
+
+In the next module, we’ll begin moving toward the concept of causal inference and how it connects to statistical models. But first, make sure you're comfortable with everything in this module.
+
+To check your understanding, complete 
+
+
+
