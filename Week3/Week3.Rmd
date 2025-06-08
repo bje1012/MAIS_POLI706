@@ -1,0 +1,155 @@
+---
+title: "Causal Inference Fundamentals"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+```
+
+## Causal Inference Fundamentals
+
+In this module, we explore what it means to make a causal claim in the social sciences—and how we can go about evaluating whether one thing truly causes another. We’ll begin by distinguishing causality from correlation and move on to different types of causal definitions, the core assumptions required for estimating causal effects, and finally, best practices for building your own causal theories.
+
+## Part 1: What is Causality?
+
+Causality is about understanding how and why one thing influences another. Rather than simply observing patterns in the data, causal inference asks: What would have happened if things were different?
+
+**Correlations is not Causation**
+
+It’s important not to confuse correlation with causation. Just because two things tend to happen at the same time doesn’t mean that one causes the other. To really understand causality, we have to dig deeper and ask: Is one thing actually producing a change in the other, or are they just happening side by side because of something else?
+
+Let’s take a simple example. Imagine we notice that when ice cream sales go up, the number of sunburn cases also increases. At first glance, this might seem like eating more ice cream somehow causes people to get sunburned. But of course, that doesn’t make sense!
+
+What’s really going on is that both of these things—buying ice cream and getting sunburned—are influenced by a third factor: hot, sunny weather. When the sun is out and temperatures are high, people flock outdoors. They’re more likely to enjoy cold treats like ice cream, and they’re also more likely to spend time in the sun, which increases their chances of getting sunburned. So while there’s a correlation between ice cream sales and sunburns, one doesn’t cause the other.
+
+This is why, when we study causal relationships—especially in political science, economics, or health—we need to go beyond surface-level patterns. We must ask whether there's a plausible mechanism connecting the variables, and whether other explanations might be behind the patterns we see.
+
+In short: correlation can be a useful clue, but it’s not the whole story. To make strong causal claims, we need to do a bit more detective work.
+
+Causal inference helps us rule out spurious relationships and focus on the variables that truly affect our outcome of interest.
+
+**Key Terms**
+
+Dependent Variable (Outcome Variable): This is the main variable you're trying to explain. It represents the result or consequence of other factors. For instance, if you're studying civil conflict, your outcome might be whether or not a country experienced a civil war in a given year.
+
+Explanatory Variables: These are the factors you think might explain or influence the dependent variable. Among these:
+
+- The key causal variable (or treatment) is the main factor you hypothesize has a causal effect.
+
+- Control variables are other variables that might influence the outcome and need to be accounted for to isolate the effect of the key causal variable.
+
+Understanding what causality means, and how it's different from mere association, is the first step toward asking better research questions and designing better studies.
+
+### Descriptive vs. Causal Inference
+
+-Descriptive inference tells us what is happening in the data.
+
+- Causal inference goes a step further and asks: what would have happened if something had been different?
+
+For example, it's descriptive to say that countries with strong Electoral Management Body (EMB) tend to have fewer civil wars. But it's causal to ask: Does strengthening EMBs reduce the likelihood of civil war?
+
+### Counterfactual Conditions
+
+At the heart of causal thinking is the counterfactual: what would have happened if things had been different?
+
+Every causal claim involves a comparison: between what did happen (the observed outcome) and what could have happened under a different condition (the counterfactual outcome).
+
+### Realized Causal Effects
+
+The realized causal effect is the difference between the outcome we observed and the outcome that would have occurred under the counterfactual. Of course, we never see both at once, so we have to estimate it.
+
+### Mean Causal Effects vs. Random Causal Effects
+
+- The mean causal effect (also known as the Average Treatment Effect, or ATE) is the average difference across a population.
+
+- Random causal effects reflect the idea that the effect may not be the same for everyone—some countries, people, or units may respond differently to the same treatment.
+
+Put simply, the causal effect is the difference between what we observe when the explanatory variable takes one value versus what we would have observed if it had taken another—for the same unit.
+
+## Part 2: Definitions of Causality
+
+### Causal Mechanisms
+
+Understanding causality isn’t just about detecting a relationship—it’s about uncovering the mechanism: how does X lead to Y? A good theory explains the steps or processes involved.
+
+### Multiple Causation
+
+Most outcomes in social science have more than one cause. For instance, civil conflict might be driven by economic, political, and geographic factors all at once.
+
+### Symmetric and Asymmetric Causality
+
+- Symmetric causality means that the presence and absence of X affects Y.
+
+- Asymmetric causality means that X’s presence might affect Y, but its absence does not necessarily have the opposite effect.
+
+Understanding this distinction helps avoid flawed reasoning, like assuming that not intervening has the opposite effect of intervening.
+
+## Part 3: Assumptions Required for Estimating Causal Effects
+
+To draw valid causal inferences, we need to make a few critical assumptions. These are often invisible but essential.
+
+Unit Homogeneity
+
+This assumption says that units respond similarly to the treatment. In other words, the causal effect is the same across all cases—or at least similar enough to be estimated on average.
+
+If countries respond very differently to the same institutional reform, the average effect may not tell us much.
+
+Conditional Independence (a.k.a. No Confounding)
+
+Also known as ignorability, this assumption means that, after we account for relevant background variables, the treatment is as good as randomly assigned.
+
+This is often the most difficult assumption to justify in observational studies, but it’s essential: without it, we can’t isolate the effect of X on Y.
+
+## Part 4: Rules for Constructing Causal Theories
+
+Now that we know what causality means and what assumptions are needed, how do we build strong causal theories?
+
+1. Construct Falsifiable Theories
+
+A theory should make testable predictions. If no evidence could ever contradict it, it’s not scientific.
+
+2. Build Theories That Are Internally Consistent
+
+Avoid contradictions. All parts of your theory should work together logically and clearly.
+
+3. Select Dependent Variables Carefully
+
+Your outcome (dependent variable) should match the question you're asking and be measurable in a meaningful way.
+
+4. Maximize Concreteness
+
+Use concepts that are as specific and measurable as possible. Avoid vague or overly abstract terms.
+
+5. State Theories in as Encompassing Ways as Feasible
+
+Whenever possible, formulate your theory to apply to a broad class of cases—not just a single country, time period, or event.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we learned that causal inference is all about comparison—between what actually happened and what could have happened under different circumstances. We discussed how to define causality using counterfactuals, explored the role of causal mechanisms and multiple causes, and laid out the key assumptions needed to estimate causal effects reliably. We also covered the essential elements for constructing strong causal theories: clarity, concreteness, internal consistency, and falsifiability.
+
+Now that you’ve completed Modules 1 through 3, it’s time to check your understanding.
+Next up: a quiz and Problem Set 1, where you’ll apply what you've learned so far. Make sure to complete these before moving on to the next module!
+

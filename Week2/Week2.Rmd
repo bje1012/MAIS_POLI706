@@ -22,6 +22,10 @@ body {
 ```{r setup, include=FALSE}
 library(kernlab)
 library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
 ```
 
 ## Revisiting the Basics – Descriptive and Bivariate Statistics
@@ -34,21 +38,72 @@ Before we start exploring relationships between variables, we need to understand
 
 ### What Is a Distribution?
 
-A distribution tells us how the values of a variable are spread out across all the observations. Think of it like a snapshot of how frequently each value shows up. For example, if you're looking at the age of survey respondents, is everyone around the same age? Are there more people in their 20s or 60s? Are there any outliers—like someone who's 99?
+When we talk about a distribution, we're really asking: how are the values of a variable spread out across all of our observations? Think of a distribution as a snapshot of your data. It tells you things like—are most people in your dataset around the same age? Are democracy scores in your sample mostly low, or do they vary widely? Is there an outlier like a country with an unusually high value?
 
-You can visualize distributions using:
+Understanding the distribution of a variable helps you spot important features in your data, such as whether it's skewed to one side, whether the values are clustered or dispersed, and whether any values stand out as unusual. These insights form the foundation of good statistical analysis.
 
-Histograms (for numeric variables)
+Now, depending on what kind of variable you're working with—categorical or numeric—you’ll want to visualize distributions in different ways.
 
-Bar charts (for categorical variables)
+For numeric or continuous variables, like income or a democracy score, **histograms** are your go-to tool. A histogram groups the data into ranges (called bins) and shows how many observations fall into each. It’s great for spotting patterns like skewness (is the data lopsided?), peaks (where most values fall), and gaps. Unlike bar charts, the bars in a histogram touch each other, reflecting the continuous nature of the variable.
 
-Box plots (great for spotting outliers)
+```{r, echo=FALSE, fig.cap= "Example Histogram", fig.align='center'}
+vdem <- read.csv("vdem.csv") %>% drop_na()
+vdem %>%
+  ggplot(aes(x = v2elembaut)) +
+  geom_histogram(fill = "#275D8E", binwidth = 0.2) +
+  labs(x = "EMB Autonomy", y = "Count", title = "") +
+  theme_bw()
+```
 
-Distributions help us spot skew (is it lopsided?), modality (one peak or multiple?), and unusual values that could affect analysis later.
+For categorical variables—such as region, regime type, or political party—**bar charts** are a better fit. These display each category as a separate bar, with the height of the bar showing how often that category occurs. Since these categories don’t have a natural numerical order, the bars don’t touch. This type of chart makes it easy to compare how frequent each category is.
+
+```{r, echo=FALSE, fig.cap= "Example Bar chart", fig.align='center'}
+vdem %>% 
+  mutate(region = case_when(e_regionpol_6C == 1 ~ "E. Europe and Central Asia",
+                            e_regionpol_6C == 2 ~ "Latin America and the Caribbean",
+                            e_regionpol_6C == 3 ~ "The Middle East and N. Africa",
+                            e_regionpol_6C == 4 ~ "Sub-Saharan Africa",
+                            e_regionpol_6C == 5 ~ "W. Europe and N. America",
+                            e_regionpol_6C == 6 ~ "Asia Pacific",
+                            )) %>%
+# Bar chart for nominal variable
+ggplot(aes(x = region)) +
+  geom_bar(fill = "#275D8E") +
+  labs(title = "", x = "\nRegion", y = "Frequency\n") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(hjust = 0.5, size = 8))
+```
+
+And then there are **box plots**, which are particularly helpful for comparing numeric variables across groups. A box plot gives you a compact summary of the distribution: it shows the median (the middle value), the range of the middle 50% of the data (called the interquartile range), and any potential outliers. For example, if we wanted to compare EMB capacity scores between countries with and without civil war, a box plot would quickly show us how those distributions differ—and whether one group tends to have higher or more variable values than the other.
+
+```{r, echo=FALSE, fig.cap= "Example box plot", fig.align='center'}
+vdem %>%
+  group_by(e_civil_war) %>%
+  ggplot(aes(x = factor(e_civil_war), y = v2elembcap)) +
+  geom_boxplot() +
+  labs(x = "Civil War", y = "EMB Capacity", title = "") +
+  theme_bw()
+```
+
+
+Finally, if you're interested in how two numeric variables relate to one another, **scatter plots** are the best choice. Each dot represents an observation, plotted according to its values on two axes. If the dots cluster along a line going upward, it suggests a positive relationship—when one variable increases, so does the other. If they form a downward line, the relationship is negative. And if they’re scattered all over, there may be no clear connection. For instance, a scatter plot of EMB autonomy versus EMB capacity could help us visualize whether countries with higher administrative independence also tend to have stronger electoral institutions.
+
+```{r, echo=FALSE, fig.cap= "Example scatter plot", fig.align='center'}
+vdem %>%
+  ggplot(aes(x = v2elembcap, y = v2elembaut)) +
+  geom_point(alpha = 0.1) +
+  labs(x = "\nEMB capacity", y = "EMB autonomy\n") + 
+  theme_bw()
+```
+
+
+In short, exploring distributions is one of the most important steps in understanding your data. Whether you're using a histogram to see how democracy scores vary across countries, a bar chart to count political regions, or a box plot to compare institutional strength across conflict settings, these visual tools help reveal patterns that numbers alone can’t always show. And the more clearly you can see your data, the better your analysis will be.
 
 ### Types of Variables
 
-Different types of variables require different kinds of summaries and visualizations. Knowing what type of variable you're working with helps you choose the right statistical tools. Here's a quick refresher:
+As I mentioned above, different types of variables require different kinds of summaries and visualizations. Knowing what type of variable you're working with helps you choose the right statistical tools. Here's a quick refresher:
 
 - **Binary Variables**: These variables have only two possible values, typically coded as 0 and 1 (e.g., yes/no, success/failure, male/female).
 
@@ -279,57 +334,278 @@ Because it’s in the same units as the original data, it’s easier to interpre
 sd(vdem$v2x_polyarchy)
 ```
 
-The mean of v2x_polyarchy is 0.39 and the standard deviation is 0.25. This tells us that, on average, most countries in the dataset have electoral democracy scores within about ±0.25 points of the mean.
+The mean of v2x_polyarchy is 0.39 and the standard deviation is 0.25. If the distribution were normal, we might expect about 68% of countries to fall within one standard deviation of the mean—that is, between 0.14 and 0.64.
 
-```{r, fig.align='center'}
+```{r, fig.align='center', warning=FALSE}
 # Calculate mean and SD
 mean_val <- mean(vdem$v2x_polyarchy, na.rm = TRUE)
+median_val <- median(vdem$v2x_polyarchy, na.rm =TRUE)
 sd_val <- sd(vdem$v2x_polyarchy, na.rm = TRUE)
 
 # Plot
 vdem %>%
   ggplot(aes(x = v2x_polyarchy)) +
-  geom_histogram(color = "white", fill = "gray", bins = 25) +
-  geom_vline(xintercept = mean_val, color = "red", linetype = "dashed") +
-  # Shaded area for ±2 SD
+  geom_histogram(aes(y = ..density..),color = "white", fill = "gray", bins = 25) +
+  geom_vline(aes(xintercept = mean_val, color = "mean"), linetype = "dashed") +
+  geom_vline(aes(xintercept = median_val, color = "median"), linetype = "dashed") +
+  # Normal distribution line
+  stat_function(fun = dnorm, args = list(mean = 0.39, sd = 0.25), 
+                color = "red", size = 0.7) +
+  # Shaded area for ±1 SD
   annotate("rect",
-           xmin = max(0, mean_val - 2 * sd_val), 
-           xmax = min(1, mean_val + 2 * sd_val),
+           xmin = max(0, mean_val - sd_val), 
+           xmax = min(1, mean_val + sd_val),
            ymin = 0,
            ymax = Inf,
            alpha = 0.2,
-           fill = "#E69F00") +
+           fill = "lightgreen") +
   labs(title = "Electoral Democracy Index\n", x = "\nElectoral Democracy Index",
-       y = "Frequency\n") +
+       y = "Density\n") +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), 
-        plot.subtitle = element_text(hjust = 0.5))
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_color_manual(name = "", values = c(median = "#E69F00", mean = "#275D8E"))
 ```
 
-In the histogram above, we visualize the distribution of the Electoral Democracy Index across countries in our dataset. The gray bars show how frequently different democracy scores occur, while the red dashed line marks the mean score. The green shaded region represents the range within two standard deviations (±2 SD) from the mean. This range often captures about 95% of the data when the distribution is normal (bell-shaped), but in our case, the data is not normally distributed.
+However, because the distribution is not normal, the usual rule of thumb—that 68% of values fall within one standard deviation of the mean—doesn’t quite apply here. That’s why it’s helpful to look at the actual histogram to get a clearer sense of how the scores are spread out.
 
+In the plot below, we visualize how electoral democracy index are distributed across countries. Each gray bar represents how many countries fall within a specific range of scores. This gives us a sense of where the data are concentrated. We also added a red dashed curve, which shows what the distribution would look like if it followed a perfect normal (bell-shaped) distribution, based on a mean of 0.39 and a standard deviation of 0.25. This curve helps us visually compare the actual data to the theoretical expectation.
+
+Two vertical dashed lines indicate the actual center points of the data: the blue line shows the mean score, while the orange line shows the median. In a symmetric, normal distribution, these would be close together—but here, the mean is to the right of the median, suggesting that the data are right-skewed—with a long tail of higher democracy scores pulling the mean upward.
+
+Finally, the light green shaded region shows the range within one standard deviation (±1 SD) of the mean—approximately from 0.14 to 0.64. This is often considered a “typical range,” but only when the distribution is normal. Since our data are skewed, this range doesn't capture the full picture. This is why it’s so important to examine the shape of the distribution—not just the summary statistics—when interpreting data like this.
 
 ## Part 2: Understanding Bivariate Statistics
 
-Once we understand individual variables, the next step is to look at relationships between two variables. This is where bivariate statistics come in.
+Once we’ve developed a clear understanding of individual variables—such as how they’re distributed, their central tendencies, and how spread out their values are—the next logical step is to explore how two variables relate to each other. This brings us into the realm of bivariate statistics.
+
+Bivariate analysis allows us to investigate whether and how variables move together. For example, do countries with higher levels of education also tend to have higher levels of democracy? Does income vary significantly between those who live in urban areas versus rural ones? These kinds of questions require tools that help us quantify and assess relationships between pairs of variables.
+
+In this section, we’ll review three key concepts used in bivariate analysis:
+
+- Covariance, which tells us whether two variables tend to increase or decrease together (but not how strong or meaningful the relationship is),
+
+- Correlation, which standardizes this relationship to a scale from -1 to 1 so we can better understand the strength and direction of the association
+
+- t-tests, which help us determine whether the difference in means between two groups is statistically significant or could have happened by chance.
+
+Together, these tools will allow us to move beyond describing variables in isolation and start making informed comparisons and evaluating possible connections between them.
 
 ### Covariance and Correlation
 
-Covariance: This measures how two variables change together. A positive covariance means that as one variable increases, so does the other. A negative covariance means the opposite. However, covariance is hard to interpret on its own because it depends on the units of the variables.
+#### **Covariance**
 
-Correlation: This standardizes covariance into a unit-free measure. Correlation values range from -1 to 1 and tell us the strength and direction of a linear relationship. A correlation close to 0 suggests little to no linear relationship.
+Covariance helps us understand how two variables move together:
 
+- A positive covariance suggests that as one variable increases, the other tends to increase too.
+
+- A negative covariance means that as one variable increases, the other tends to decrease.
+
+- A covariance close to zero indicates no clear pattern of association.
+
+
+```{r, include=FALSE}
+jointtable <- table(vdem$v2elembcap_ord, vdem$v2elembaut_ord)
+
+joint_percent <- prop.table(jointtable) 
+
+joint_table <- addmargins(joint_percent, FUN = list(Total = sum))
+```
+
+
+```{r, echo=FALSE}
+kable(joint_table, digits = 3, caption = "Joint Distribution of EMB Capacity and EMB Autonomy",
+      col.names = c("EMB capacity", "0", "1", "2", "3", "4", "Total")) %>%
+  add_header_above(c(" " = 1, "EMB autonomy" = 5, " " = 1)) %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+```
+
+In our dataset:
+
+- `v2elembcap_ord` (EMB capacity) is an ordinal variable, ranging from 0 (no capacity) to 4 (full capacity).
+
+- `v2elembaut_ord` (EMB autonomy) is also an ordinal variable, ranging from 0 (no autonomy) to 4 (full autonomy).
+
+Now look at the joint percentage table above. We can spot a clear pattern:
+
+Countries with low EMB capacity (row 0 and 1) tend to cluster in the lower autonomy columns (column 0 and 1). For instance, countries with EMB capacity 0 have 14.3% of cases in autonomy level 0 and 4.0% in level 1.
+
+On the other hand, countries with high EMB capacity (row 4) have more representation in the higher autonomy levels. For example, at capacity level 4, 13.5% of observations fall in autonomy level 4, and 7.5% in level 3.
+
+This indicates a positive relationship—as EMB capacity increases, EMB autonomy tends to increase as well.
+
+#### **Then How is Covariance Calculated?**
+
+The formula for calculating the covariance between two variables $X$ and $Y$ is:
+
+$$
+\text{Cov}(X, Y) = \mathbb{E}[(X - \mu_X)(Y - \mu_Y)] = \mathbb{E}(XY) - \mathbb{E}(X)\mathbb{E}(Y)
+$$
+
+Here:
+
+- $\mathbb{E}$ stands for the expected value (or average),
+- $\mu_X4$ and $\mu_Y$ are the means of variables $X$ and $Y4, respectively.
+
+This equation shows that covariance is essentially the average product of how far each observation is from the mean of its variable. 
+
+If $X$ and $Y$ tend to be above (or below) their means at the same time, the product is positive—leading to a **positive covariance**. If one tends to be above while the other is below, the product is negative—resulting in a **negative covariance**.
+
+Let's apply this to our dataset.
+
+In our case, we are interested in understanding the relationship between **EMB capacity** (Election Management Body Capacity) and **EMB aut** (Election Management Body Autonomy).
+
+We can think of these variables as $X = \text{EMB capacity}$ and $Y = \text{EMB autonomy}$. To compute the covariance between these two variables, we follow these steps:
+
+The mean of $X$:  
+
+```{r}
+meanX <- mean(vdem$v2elembcap_ord)
+meanX
+```
+
+
+The mean of $Y$:  
+
+```{r}
+meanY <- mean(vdem$v2elembaut_ord)
+meanY
+```
+
+For each country, calculate $(X_i - \mu_X)(Y_i - \mu_Y)$, and then take the average across all observations:
+
+$$
+\text{Cov}(X, Y) = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \mu_X)(Y_i - \mu_Y)
+$$
+
+```{r}
+sum((vdem$v2elembcap_ord - meanX) * (vdem$v2elembaut_ord - meanY)) / (nrow(vdem) - 1)
+```
+
+We can also use R’s built-in `cov()` function:
+
+```{r}
+cov(vdem$v2elembcap_ord, vdem$v2elembaut_ord)
+```
+
+Both methods give the same result.
+
+This positive covariance suggests that countries with higher EMB capacity also tend to have higher EMB autonomy. However, to better understand the strength and scale-free direction of this relationship, we’ll next turn to correlation.
+
+#### **Correlation**
+
+While covariance tells us the direction of the relationship between two variables, it doesn’t tell us how strong the relationship is—nor is it easy to interpret because the result depends on the units of the original variables.
+
+That’s where correlation comes in. The correlation coefficient is a standardized measure of the strength and direction of a linear relationship between two variables. It ranges from:
+
+- +1: a perfect positive linear relationship
+
+- 0: no linear relationship
+
+- –1: a perfect negative linear relationship
+
+The formula for correlation is:
+
+$$
+\text{Cor}(X, Y) = \frac{\text{Cov}(X, Y)}{\sigma_X \cdot \sigma_Y}
+$$
+Where:
+
+- $\text{Cor}(X, Y)$ is the covariance,
+
+- $\sigma_X$ is the standard deviation of X,
+
+- $\sigma_Y$ is the standard deviation of Y,
+
+This formula essentially scales the covariance by the variability of each variable, which makes the result unit-free and thus easier to interpret.
+
+Let’s calculate the correlation between EMB capacity and EMB autonomy:
+
+```{r}
+cov(vdem$v2elembcap_ord, vdem$v2elembaut_ord) / (sd(vdem$v2elembcap_ord) * sd(vdem$v2elembaut_ord))
+```
+
+Using R function `cor()`:
+
+```{r}
+cor(vdem$v2elembcap_ord, vdem$v2elembaut_ord)
+```
+
+The value 0.6859 is positive. This result tells us that there’s a positive linear relationship between EMB capacity and EMB autonomy. In general, countries with higher EMB capacity also tend to have higher EMB autonomy, and vice versa.
 
 ### T-tests
 
-A t-test compares the means of two groups. For example, we might want to know if men and women have significantly different average incomes. T-tests help us assess whether the difference we see is likely due to chance or reflects a real difference in the population.
+A t-test is a statistical tool used to compare the means of two groups and assess whether the observed difference between them is statistically significant—that is, unlikely to have occurred by chance alone.
 
+For example, imagine we want to know whether countries experiencing civil war differ from those that don’t in terms of the capacity of their Election Management Body (EMB). We might expect that civil conflict would weaken institutions, and a t-test allows us to test that expectation.
 
-## What’s Next?
+Let’s set it up:
+
+Group 1: Countries not in civil war (`e_civil_war` == 0)
+
+Group 2: Countries in civil war (`e_civil_war` == 1)
+
+Variable of interest: `v2elembcap` EMB capacity (Interval variable)
+
+We want to know:
+
+Do countries with civil war have lower average EMB capacity than those without?
+
+To better understand the relationship between EMB capacity and the presence of civil war, we first looked at a summary table showing the average EMB capacity for each group—countries with and without civil conflict.
+
+According to the table:
+
+```{r}
+vdem %>% 
+  group_by(e_civil_war) %>%
+  summarize(mean_cap = mean(v2elembcap), n = n()) %>%
+  kable(col.names = c("Civil War", "Mean (EMB capacity)", "Number of Observation")) %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+```
+
+This tells us that, on average, countries without a civil war have a higher EMB capacity score (0.25), while countries with a civil war have a much lower average score (–0.71). The large difference in these mean values already suggests a strong link between civil conflict and weaker electoral institutions.
+
+To visualize this relationship, we also created a boxplot. In this plot, the x-axis separates the two groups (civil war = 0 and 1), and the y-axis shows the distribution of EMB capacity scores within each group.
+
+```{r, fig.align='center', fig.cap= "Average EMB Capacity by Civil War Status"}
+vdem %>%
+  group_by(e_civil_war) %>%
+  ggplot(aes(x = factor(e_civil_war), y = v2elembcap)) +
+  geom_boxplot() +
+  labs(x = "Civil War", y = "EMB Capacity", title = "") +
+  theme_minimal()
+```
+
+The boxplot reinforces what we saw in the summary table: countries without civil war tend to have EMB capacity scores clustered around higher values. In contrast, countries experiencing civil war not only have lower average scores but also show less variation, with most values packed around those low numbers. You can clearly see from the boxplot that the median is lower for civil war countries, and the overall distribution is shifted downward.
+
+But while visualizations and mean comparisons give us a good starting point, they don’t tell us whether the differences we see are statistically significant—that is, whether the difference is likely to be real or just due to random variation in our sample. That’s where the t-test comes in.
+
+Now, we conduct a t-test to formally compare the two group means and determine whether the difference in EMB capacity between civil war and non-civil war countries is statistically meaningful.
+
+```{r}
+t.test(v2elembcap ~ e_civil_war, data = vdem)
+```
+
+The results of the t-test show a clear and meaningful difference in EMB (Election Management Body) capacity between countries with and without civil war. The p-value is extremely small—much smaller than the usual cutoff of 0.05—which means we can confidently reject the idea that there’s no difference between the two groups.
+
+Looking at the 95% confidence interval, the difference in average EMB capacity scores is estimated to fall between 0.83 and 1.09 points. In simple terms, countries without civil war tend to score much higher on EMB capacity than those that are currently experiencing conflict.
+
+Here’s what the group averages look like:
+
+- No civil war: average EMB capacity = 0.25
+
+- Civil war: average EMB capacity = –0.71
+
+That’s a big gap! This result suggests that countries not in conflict tend to have stronger electoral institutions. Of course, we can’t say from this test alone whether strong EMBs help prevent conflict or whether conflict weakens them—but either way, there’s a strong relationship worth paying attention to.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we explored how to summarize and visualize data to better understand patterns, relationships, and differences across groups. We began by discussing distributions—how data values are spread—and the importance of choosing the right visualization based on whether a variable is numeric or categorical.
+
+We also learned how to measure relationships numerically. We calculated covariance to understand whether two variables move together, and used correlation to measure the strength and direction of that movement on a standardized scale. Finally, we ran a t-test to see whether the difference in a variable between different groups is statistically significant or if the difference might just be due to random chance.
+
+As you move forward, keep in mind that descriptive statistics and data visualization aren’t just academic exercises—they’re tools to help you tell stories with data. Whether you're exploring institutional strength, conflict, democracy, or any other topic, these techniques lay the groundwork for deeper analysis and stronger arguments.
 
 In the next module, we’ll begin moving toward the concept of causal inference and how it connects to statistical models. But first, make sure you're comfortable with everything in this module.
-
-To check your understanding, complete 
-
 
 
