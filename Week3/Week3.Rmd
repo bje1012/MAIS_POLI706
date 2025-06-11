@@ -36,9 +36,13 @@ In this module, we explore what it means to make a causal claim in the social sc
 
 Causality is about understanding how and why one thing influences another. Rather than simply observing patterns in the data, causal inference asks: What would have happened if things were different?
 
-**Correlations is not Causation**
+**Correlation is Not Causation**
 
 It’s important not to confuse correlation with causation. Just because two things tend to happen at the same time doesn’t mean that one causes the other. To really understand causality, we have to dig deeper and ask: Is one thing actually producing a change in the other, or are they just happening side by side because of something else?
+
+```{r, echo=FALSE, fig.align='center', out.width='80%'}
+knitr::include_graphics("/Users/jieun/Documents/MAIS_POLI706/figures/icecream.jpg")
+```
 
 Let’s take a simple example. Imagine we notice that when ice cream sales go up, the number of sunburn cases also increases. At first glance, this might seem like eating more ice cream somehow causes people to get sunburned. But of course, that doesn’t make sense!
 
@@ -64,47 +68,127 @@ Understanding what causality means, and how it's different from mere association
 
 ### Descriptive vs. Causal Inference
 
--Descriptive inference tells us what is happening in the data.
+#### Descriptive Inference
 
-- Causal inference goes a step further and asks: what would have happened if something had been different?
+**Descriptive inference** is about learning something that we have not directly observed, based on what we have observed. It goes beyond simply summarizing patterns in the data—it uses those patterns to make informed claims about unknown or unobserved facts.
 
-For example, it's descriptive to say that countries with strong Electoral Management Body (EMB) tend to have fewer civil wars. But it's causal to ask: Does strengthening EMBs reduce the likelihood of civil war?
+In Module 2, we practiced descriptive inference by studying the relationship between civil war and the capacity of Election Management Bodies (EMBs). While we visualized and compared EMB capacity scores between countries with and without civil war, we inferred that EMB capacity is correlated with civil war onset. From this observation, we could say:
+
+*“Countries with civil wars tend to have lower EMB capacity scores than those without civil wars.”*
+
+We didn’t just stop at describing the scores in our dataset — we used the patterns in that sample to say something meaningful about the broader population of countries. That’s what makes it descriptive inference.
+
+However, even with statistically significant results, our inference remained descriptive—not causal. We learned that there is an association between civil war and EMB capacity, but we haven’t answered the why. Is civil war causing weaker institutions? Are weak institutions making civil war more likely? Or are both driven by a third factor, like poor governance or economic instability?
+
+#### Causal Inference
+
+**Causal inference** takes things a step further and asks deeper questions:
+
+- What would have happened if something had been different?
+
+- Would a country have avoided a financial crisis if it had implemented stricter banking regulations?
+
+- Would voter turnout have increased if election day had been declared a national holiday?
+
+It’s not enough to observe patterns—we want to understand **the cause** behind those patterns.
+
+For example, it’s descriptive to say that countries with strong EMB capacity tend to experience fewer civil wars. But it’s causal to ask: Does strengthening EMB capacity reduce the likelihood of civil war? That’s the heart of causal inference—trying to isolate the effect of one factor on another, while ruling out other possible explanations.
+
+Here, the researcher is not only describing what is happening, but also trying to estimate what would happen if we changed something—what happens to Y when we change X.
+
+In short, descriptive inference tells us what is happening, while causal inference helps us understand why it’s happening—and what might happen if we intervene or make a change. That shift—from observing the world to imagining how it might change—is what makes causal inference such a powerful tool in political science and beyond.
 
 ### Counterfactual Conditions
 
-At the heart of causal thinking is the counterfactual: what would have happened if things had been different?
+Causal inference is all about asking, “What would have happened if things had been different?” This is what we call a **counterfactual question**.
 
-Every causal claim involves a comparison: between what did happen (the observed outcome) and what could have happened under a different condition (the counterfactual outcome).
+For example, imagine a country that experienced a civil war and scored low on Election Management Body (EMB) capacity. Now we might wonder: Would this country have had a higher EMB capacity if it hadn’t gone through a civil war? That’s a causal question. But here’s the challenge: we only ever see what actually happened—not what could have happened under a different scenario. We don’t get to observe both versions of the world for the same country.
+
+This gap is known as **the fundamental problem of causal inference.** For every country, we only observe one outcome: either it had a civil war or it didn’t. But to understand causality, we need to compare what did happen to what would have happened. Since we can’t directly observe the counterfactual, we need to estimate it using data from other, similar units—and this is where good research design comes in.
 
 ### Realized Causal Effects
 
-The realized causal effect is the difference between the outcome we observed and the outcome that would have occurred under the counterfactual. Of course, we never see both at once, so we have to estimate it.
+A realized causal effect is the difference between two outcomes: one that we observed, and one that we didn’t but wish we could have.
 
-### Mean Causal Effects vs. Random Causal Effects
+For unit $i$, the realized causla effect is 
 
-- The mean causal effect (also known as the Average Treatment Effect, or ATE) is the average difference across a population.
+$$
+y_i^I - y_i^N
+$$
 
-- Random causal effects reflect the idea that the effect may not be the same for everyone—some countries, people, or units may respond differently to the same treatment.
+Where $y_i^I$ is the actual observation, and $y_i^N$ is the counterfactual situation.
 
-Put simply, the causal effect is the difference between what we observe when the explanatory variable takes one value versus what we would have observed if it had taken another—for the same unit.
+Let’s take our earlier example. Suppose Country A experienced civil war in the year 1990 and scored 1.2 on EMB capacity. What would its score have been if it hadn’t had a civil war? Maybe it would have been 2.0. The realized causal effect would then be:
+
+$$
+\text{Causal Effect} = 1.2 \text{(actual)} - 2.0 \text{(counterfactual)} = -0.8
+$$
+
+But remember — we don’t actually get to observe that counterfactual 2.0. We have to estimate it, perhaps by looking at countries similar to Country A that didn't experience civil war. This is the fundamental problem of causal inference. No matter how perfect the research design, no matter how much data we collect, no matter how perceptive the observers, and no matter how much experimental control we have, we will never know a causal inference for certain. 
+
+### Random Causal Effects
+
+In social science, it helps to think about the world as made up of both **systematic** and **nonsystematic** parts. To see why this matters, imagine a parallel universe where Country A goes through a civil war in 1990. In that world, the country's EMB ends up with a certain capacity score. Now imagine we could replay that same scenario — same country, same civil war — across many different versions of the universe. Even though the civil war always happens, the EMB capacity score might turn out differently each time. Why? Because of things we can't fully predict or control — like what neighboring countries were doing or if the country’s leader suddenly changed. These kinds of features are what we call nonsystematic features, and they make outcomes vary even when the main treatment stays the same.
+
+These features reflect the randomness not captured by our theoretical model. We can therefore imagine a variable that would express the values of the EMB capacity score across hypothetical replications of this same situation. This variable is called a **"random variable"** since it has nonsystematic features: it is affected by explanatory variables not encompassed in our theoretical analysis or contains fundamentally unexplainable variability. We define the random variable representing the EMB capacity score under civil war as $Y_i^I$ and under peace as $Y_i^N$.
+
+The **random causal effect** would then be : 
+
+$$
+Y_i^I - Y_i^N
+$$
+
+This variation in outcomes reflects the random causal effect — the difference caused by civil war in a single replication, influenced by unpredictable factors. When we imagine running many versions of Country A with civil war and many versions without civil war, each with slightly different outcomes, what we’re really doing is building up a sense of how the realized causal effect (in one instance) becomes a random causal effect (across many possibilities).
+
+### Mean Causal Effects
+
+The **mean causal effect** takes things a step further. Instead of looking at just one pair of hypothetical outcomes, it asks: *On average, how does civil war affect EMB capacity?*
+
+We again define:
+
+- $Y_i^I$: the EMB capacity score for country $i$ **if** civil war occurs  
+
+- $Y_i^N$: the EMB capacity score for country $i$ **if** civil war does not occur
+
+Then the **mean causal effect** for unit $i$ is the expected value (the average EMB capacity score across these replications) of the random causal effect:
+
+$$
+\text{Mean Causal Effect}_i = E(Y_i^I - Y_i^N)
+$$
+
+
 
 ## Part 2: Definitions of Causality
 
 ### Causal Mechanisms
 
-Understanding causality isn’t just about detecting a relationship—it’s about uncovering the mechanism: how does X lead to Y? A good theory explains the steps or processes involved.
+A causal mechanism refers to the process through which a cause produces an effect. It represents the sequence of events or interactions that connect the explanatory variable (cause) to the outcome (effect). Identifying mechanisms helps researchers explain how or why a causal relationship exists, providing theoretical depth and empirical clarity.
+
+For instance, suppose a study finds that countries with strong Election Management Bodies (EMBs) tend to have fewer civil wars. A possible causal mechanism might be that strong EMBs increase public trust in electoral processes, reduce political grievances, and thereby decrease the likelihood of conflict. Here, trust-building is one step in the causal mechanism linking EMB capacity to peace.
+
+While causal mechanisms are incredibly valuable for theory development and qualitative analysis (such as through process tracing or case studies), they do not replace the need for a precise definition of causality. According to King, Keohane, and Verba (1994), identifying causal mechanisms requires prior causal inference for each step in the chain. Moreover, because an infinite number of steps could lie between a cause and an effect, relying solely on mechanisms without a foundational causal framework can lead to infinite regress.
+
+In short, while mechanisms help illustrate and support a causal story, they are not themselves a definition of causality. The core remains a counterfactual comparison between what happened and what would have happened under a different condition.
 
 ### Multiple Causation
 
-Most outcomes in social science have more than one cause. For instance, civil conflict might be driven by economic, political, and geographic factors all at once.
+Multiple causation refers to situations where more than one factor contributes to the occurrence of an outcome. This concept is common in social science, where outcomes are rarely the result of a single cause. For example, the outbreak of civil war in a country might depend on a combination of low economic development, ethnic fragmentation, and weak state capacity.
+
+This idea aligns with the concept of "equifinality"—different combinations of causes can produce the same result. In quantitative research, this can be modeled using interaction terms or by comparing multiple categories of causal variables. In qualitative research, scholars like Charles Ragin advocate for case-oriented approaches that can accommodate such complexity.
+
+Multiple causation doesn't undermine the counterfactual definition of causality. Instead, it emphasizes the importance of clearly specifying the different conditions being compared. For example, comparing someone with a college degree and no job experience to someone without a degree but with four years of experience is a specific counterfactual pair. Different pairings might lead to different causal effects.
+
+Thus, the principle of multiple causation reinforces the need for precise counterfactual thinking. The existence of many contributing factors does not alter the basic logic of causal inference—it just increases the complexity of defining and estimating the effect of each factor.
 
 ### Symmetric and Asymmetric Causality
 
-- Symmetric causality means that the presence and absence of X affects Y.
+Symmetric causality assumes that the effect of increasing a causal variable is equal in magnitude but opposite in direction to the effect of decreasing it. Asymmetric causality, by contrast, occurs when the impact of increasing a variable differs from the impact of decreasing it.
 
-- Asymmetric causality means that X’s presence might affect Y, but its absence does not necessarily have the opposite effect.
+Consider the case of political incumbency. Suppose a candidate gains a vote share boost by becoming the incumbent. Symmetric causality would imply that losing incumbency results in an equal drop in vote share. But if incumbency helps a party build long-term organizational strength, losing the incumbent might not reverse those gains—this would be an example of asymmetric causality.
 
-Understanding this distinction helps avoid flawed reasoning, like assuming that not intervening has the opposite effect of intervening.
+According to King, Keohane, and Verba, these distinctions are relevant when interpreting causal inferences, but they do not redefine what causality means. They reflect specific features of empirical relationships, not the fundamental concept of a causal effect, which remains a comparison between two potential outcomes.
+
+In sum, symmetric and asymmetric effects describe how a causal relationship operates in specific cases, but they don’t change the basic definition of causality based on counterfactual reasoning.
 
 ## Part 3: Assumptions Required for Estimating Causal Effects
 
