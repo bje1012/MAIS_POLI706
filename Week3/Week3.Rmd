@@ -34,7 +34,7 @@ In this module, we explore what it means to make a causal claim in the social sc
 
 ## Part 1: What is Causality?
 
-Causality is about understanding how and why one thing influences another. Rather than simply observing patterns in the data, causal inference asks: What would have happened if things were different?
+Causality is about understanding how and why one thing influences another. Rather than simply observing patterns in the data, causal inference asks: What would have happened if things had been different?
 
 **Correlation is Not Causation**
 
@@ -110,7 +110,7 @@ This gap is known as **the fundamental problem of causal inference.** For every 
 
 A realized causal effect is the difference between two outcomes: one that we observed, and one that we didn’t but wish we could have.
 
-For unit $i$, the realized causla effect is 
+For unit $i$, the realized causal effect is 
 
 $$
 y_i^I - y_i^N
@@ -124,7 +124,7 @@ $$
 \text{Causal Effect} = 1.2 \text{(actual)} - 2.0 \text{(counterfactual)} = -0.8
 $$
 
-But remember — we don’t actually get to observe that counterfactual 2.0. We have to estimate it, perhaps by looking at countries similar to Country A that didn't experience civil war. This is the fundamental problem of causal inference. No matter how perfect the research design, no matter how much data we collect, no matter how perceptive the observers, and no matter how much experimental control we have, we will never know a causal inference for certain. 
+But remember — we don’t actually get to observe that counterfactual 2.0. We have to estimate it, perhaps by looking at countries similar to Country A that didn't experience civil war. This is the fundamental problem of causal inference. No matter how perfect the research design, no matter how much data we collect, no matter how perceptive the observers, and no matter how much experimental control we have, we will never know the causal inference for certain. 
 
 ### Random Causal Effects
 
@@ -160,80 +160,91 @@ $$
 
 ## Part 2: Definitions of Causality
 
+Now that we’ve established what causality means in terms of counterfactual reasoning, we can turn to several important ideas that often come up when people talk about causation. These include concepts like causal mechanisms (how a cause leads to an effect) and multiple causation (how different combinations of factors can produce the same outcome). While these ideas enrich our understanding of causal relationships, they do not alter the core definition of causality as a comparison between what did happen and what would have happened under different circumstances. In the sections that follow, we’ll explore each of these concepts in more detail.
+
 ### Causal Mechanisms
 
 A causal mechanism refers to the process through which a cause produces an effect. It represents the sequence of events or interactions that connect the explanatory variable (cause) to the outcome (effect). Identifying mechanisms helps researchers explain how or why a causal relationship exists, providing theoretical depth and empirical clarity.
 
-For instance, suppose a study finds that countries with strong Election Management Bodies (EMBs) tend to have fewer civil wars. A possible causal mechanism might be that strong EMBs increase public trust in electoral processes, reduce political grievances, and thereby decrease the likelihood of conflict. Here, trust-building is one step in the causal mechanism linking EMB capacity to peace.
+For instance, suppose a study finds that countries with fewer civil wars tend to have stronger Election Management Bodies (EMBs). A possible causal mechanism might be that the absence of civil war creates a more stable political environment, which allows institutions like EMBs to function more effectively, receive more resources, and gain public trust. In this chain, political stability plays a crucial role in enabling stronger EMB capacity.
 
-While causal mechanisms are incredibly valuable for theory development and qualitative analysis (such as through process tracing or case studies), they do not replace the need for a precise definition of causality. According to King, Keohane, and Verba (1994), identifying causal mechanisms requires prior causal inference for each step in the chain. Moreover, because an infinite number of steps could lie between a cause and an effect, relying solely on mechanisms without a foundational causal framework can lead to infinite regress.
+While causal mechanisms are valuable for theory development and qualitative analysis (such as through process tracing or case studies), they do not replace the need for a precise definition of causality. Identifying causal mechanisms requires prior causal inference for each step in the chain. Moreover, because an infinite number of steps could lie between a cause and an effect, relying solely on mechanisms without a foundational causal framework can lead to infinite regress.
 
 In short, while mechanisms help illustrate and support a causal story, they are not themselves a definition of causality. The core remains a counterfactual comparison between what happened and what would have happened under a different condition.
 
 ### Multiple Causation
 
-Multiple causation refers to situations where more than one factor contributes to the occurrence of an outcome. This concept is common in social science, where outcomes are rarely the result of a single cause. For example, the outbreak of civil war in a country might depend on a combination of low economic development, ethnic fragmentation, and weak state capacity.
+Multiple causation refers to situations in which an outcome is influenced by more than one factor. This is especially common in the social sciences, where political, economic, and social outcomes rarely have a single cause. Instead, they emerge from a combination of conditions acting together.
 
-This idea aligns with the concept of "equifinality"—different combinations of causes can produce the same result. In quantitative research, this can be modeled using interaction terms or by comparing multiple categories of causal variables. In qualitative research, scholars like Charles Ragin advocate for case-oriented approaches that can accommodate such complexity.
+For example, the strength of a country’s Election Management Body (EMB) might depend on several factors: the level of democracy, absence of civil conflict, economic capacity, historical legacies, and international pressure. No single factor may be sufficient on its own, but certain combinations can lead to the same outcome—a phenomenon often called equifinality.
 
-Multiple causation doesn't undermine the counterfactual definition of causality. Instead, it emphasizes the importance of clearly specifying the different conditions being compared. For example, comparing someone with a college degree and no job experience to someone without a degree but with four years of experience is a specific counterfactual pair. Different pairings might lead to different causal effects.
+Acknowledging multiple causation does not challenge the counterfactual definition of causality. It simply means we must be more careful in specifying the alternative conditions we compare. Each causal claim still relies on comparing what did happen with what would have happened under a different set of conditions—holding other relevant factors constant.
 
-Thus, the principle of multiple causation reinforces the need for precise counterfactual thinking. The existence of many contributing factors does not alter the basic logic of causal inference—it just increases the complexity of defining and estimating the effect of each factor.
-
-### Symmetric and Asymmetric Causality
-
-Symmetric causality assumes that the effect of increasing a causal variable is equal in magnitude but opposite in direction to the effect of decreasing it. Asymmetric causality, by contrast, occurs when the impact of increasing a variable differs from the impact of decreasing it.
-
-Consider the case of political incumbency. Suppose a candidate gains a vote share boost by becoming the incumbent. Symmetric causality would imply that losing incumbency results in an equal drop in vote share. But if incumbency helps a party build long-term organizational strength, losing the incumbent might not reverse those gains—this would be an example of asymmetric causality.
-
-According to King, Keohane, and Verba, these distinctions are relevant when interpreting causal inferences, but they do not redefine what causality means. They reflect specific features of empirical relationships, not the fundamental concept of a causal effect, which remains a comparison between two potential outcomes.
-
-In sum, symmetric and asymmetric effects describe how a causal relationship operates in specific cases, but they don’t change the basic definition of causality based on counterfactual reasoning.
+In short, multiple causation highlights the complexity of real-world causal relationships. It reminds us that we often need to examine how different factors interact and combine, but it does not require changing our core definition of causality. Instead, it reinforces the importance of clearly defining the specific causal effect we aim to estimate.
 
 ## Part 3: Assumptions Required for Estimating Causal Effects
 
-To draw valid causal inferences, we need to make a few critical assumptions. These are often invisible but essential.
+To make valid causal claims from our data, we must rely on certain assumptions. These assumptions are often invisible but absolutely essential—they help us overcome the fundamental problem of causal inference, which is that we never observe the same unit both in the treated and untreated condition. Without assumptions, causal inference is impossible.
 
-Unit Homogeneity
+In this section, we discuss two critical assumptions that help us estimate causal effects: **Unit Homogeneity** and **Conditional Independence**
 
-This assumption says that units respond similarly to the treatment. In other words, the causal effect is the same across all cases—or at least similar enough to be estimated on average.
+### Unit Homogeneity
 
-If countries respond very differently to the same institutional reform, the average effect may not tell us much.
+Unit homogeneity assumes that units with the same value of the explanatory variable will have the same expected value of the outcome variable. That is, if two countries both experience civil war (or both do not), and are otherwise comparable, we assume their EMB capacity (or other outcome of interest) should be the same on average.
 
-Conditional Independence (a.k.a. No Confounding)
+This assumption allows us to substitute similar units for the counterfactual we can’t observe. For example, suppose we want to estimate the effect of civil war on EMB capacity. We can't rewind history to see what would have happened to Country A if it hadn’t experienced a civil war. But if Country B is similar in all important ways and did not have a civil war, we can treat Country B as a stand-in for Country A’s counterfactual condition.
 
-Also known as ignorability, this assumption means that, after we account for relevant background variables, the treatment is as good as randomly assigned.
+Of course, no two countries (or individuals, or cases) are truly identical. At best, we assume that, across many replications or in large samples, the average differences between treatment and control groups are meaningful.
 
-This is often the most difficult assumption to justify in observational studies, but it’s essential: without it, we can’t isolate the effect of X on Y.
+Unit homogeneity is foundational to much of social science. Whether we’re comparing case studies or running regressions, we rely on some version of this idea—that observed differences in outcomes are due to differences in explanatory variables, not due to underlying, unobserved heterogeneity between units.
+
+### Conditional Independence 
+
+To estimate causal effects accurately, we must account for **confounders**—variables that influence both the treatment and the outcome. A confounder creates a spurious association by affecting both sides of the causal relationship we care about. If not addressed, confounders can lead us to falsely attribute the effect of the confounder to the treatment variable. 
+
+The assumption of conditional independence helps us tackle this issue. Conditional independence means that, after controlling for all relevant confounding variables, the assignment of the treatment is independent of the potential outcomes. In other words, once we adjust for the right covariates, it should no longer matter whether a unit is treated or not—the treatment should be "as if randomly assigned" given those controls.
+
+For example, imagine we are studying whether civil war reduces EMB capacity. One potential confounder is state capacity: countries with weak state capacity may be more likely to experience civil war and to have low EMB capacity. If we don’t control for state capacity, we might mistakenly conclude that civil war reduces EMB effectiveness, when in fact, both are outcomes of weak capacity. By including state capacity as a control variable, we reduce this risk and move closer to identifying the true causal effect of civil war.
+
+In randomized experiments, this condition is satisfied by design. Random assignment breaks the link between confounders and treatment, ensuring that differences in outcomes can be attributed to the treatment itself. But in observational studies, we don’t get to assign treatments. Instead, we must statistically control for confounding variables that might bias our estimates—such as GDP per capita, regime type, or prior history of violence—when estimating the effect of civil war on EMB capacity.
 
 ## Part 4: Rules for Constructing Causal Theories
 
-Now that we know what causality means and what assumptions are needed, how do we build strong causal theories?
+Now that we understand what causality means and what assumptions are needed for causal inference, how do we go about building strong causal theories? In this section, we outline five key rules that help formulate effective and scientifically valuable causal theories. These rules ensure our theories are logically coherent, empirically evaluable, and broadly informative.
 
-1. Construct Falsifiable Theories
+### Construct Falsifiable Theories
 
-A theory should make testable predictions. If no evidence could ever contradict it, it’s not scientific.
+A good causal theory must be falsifiable—it should generate predictions that can be proven wrong by empirical evidence. Falsifiability requires specificity: rather than vague ideas, we should frame hypotheses in terms of observable implications. Even if a theory has been supported by many consistent tests, we must remain open to modifying or discarding it when contradictory evidence arises. This does not mean abandoning a theory at the first sign of inconsistency, but rather treating each empirical test as contributing information about the theory's validity and the boundaries of its applicability.
 
-2. Build Theories That Are Internally Consistent
+### Build Theories That Are Internally Consistent
 
-Avoid contradictions. All parts of your theory should work together logically and clearly.
+Theories must not contain internal contradictions. If two parts of a theory logically generate incompatible hypotheses, then the theory is false by definition—even without any data.
 
-3. Select Dependent Variables Carefully
+However, formal models are only approximations of reality. While they clarify reasoning, they often involve simplifying assumptions—such as ignoring omitted variables—that are useful for abstraction but must be revisited when designing empirical tests. A model that is internally consistent but empirically irrelevant is of limited value. Thus, consistency must be paired with empirical awareness.
 
-Your outcome (dependent variable) should match the question you're asking and be measurable in a meaningful way.
+### Select Dependent Variables Carefully
 
-4. Maximize Concreteness
+Your choice of a dependent variable (outcome) is critical. First, make sure it is truly dependent—that is, it should not cause changes in the explanatory variables. Reverse causality undermines inference. Second, avoid selecting cases based on the value of the dependent variable (e.g., studying only instances of war when analyzing causes of war), as this produces selection bias.
 
-Use concepts that are as specific and measurable as possible. Avoid vague or overly abstract terms.
+Finally, ensure your outcome actually reflects the phenomenon you aim to explain. For example, controlling for gravity and then studying falling speed may help explore object-level differences, but tells us nothing about gravity itself. Likewise, in social science, we must ensure our outcomes capture meaningful variation relevant to the causal question at hand.
 
-5. State Theories in as Encompassing Ways as Feasible
+### Maximize Concreteness
 
-Whenever possible, formulate your theory to apply to a broad class of cases—not just a single country, time period, or event.
+Concrete and observable concepts should be used whenever possible. Abstract ideas like “motivation,” “national interest,” or “institutionalization” are often necessary, but they must be clearly defined and linked to measurable indicators. For instance, if a researcher wants to study “national interest,” they might define it in terms of measurable behaviors such as foreign aid allocation, military deployments, or trade agreements—concrete actions that reflect a government’s priorities.
+
+The danger lies in reification — treating indirect or weak proxies as if they fully represent the abstract concept. For example, measuring “institutionalization” by the size of a staff may be convenient, but this should be justified and supported with other evidence. Overreliance on a single indicator risks tautology or circular reasoning.
+
+### State Theories in as Encompassing Ways as Feasible
+
+A good theory should apply beyond a single case — it should help explain a wide range of phenomena across time, space, and context. This increases a theory’s leverage, or its ability to account for variation in many settings.
+
+However, broader theories must still be falsifiable and measurable. Stating that a pattern applies to "all legislatures" rather than just "the German Bundestag" is helpful only if the theory’s scope and mechanisms are clear. When applying a theory to new settings, we should ask: what conditions must hold for the theory to work here? Theories that travel well—and identify the limits of their applicability—are especially valuable.
 
 ## Wrapping Up: What We’ve Learned
 
-In this module, we learned that causal inference is all about comparison—between what actually happened and what could have happened under different circumstances. We discussed how to define causality using counterfactuals, explored the role of causal mechanisms and multiple causes, and laid out the key assumptions needed to estimate causal effects reliably. We also covered the essential elements for constructing strong causal theories: clarity, concreteness, internal consistency, and falsifiability.
+In this module, we explored the foundations of causal inference, emphasizing the central idea that causal claims require a comparison between what actually occurred and what would have occurred under different conditions — the counterfactual. We examined how to define causality in terms of potential outcomes, the importance of identifying plausible causal mechanisms, and the challenges posed by multiple causation.
 
-Now that you’ve completed Modules 1 through 3, it’s time to check your understanding.
-Next up: a quiz and Problem Set 1, where you’ll apply what you've learned so far. Make sure to complete these before moving on to the next module!
+We also introduced the key assumptions necessary for valid causal inference, including unit homogeneity and conditional independence, and discussed how these assumptions help us navigate the fundamental problem of causal inference. Finally, we outlined best practices for constructing rigorous causal theories, focusing on clarity, concreteness, logical consistency, and testability.
+
+With Modules 1 through 3 behind you, you're now equipped with the conceptual tools to begin applying these ideas in practice. Up next: a quiz and Problem Set 1, where you'll put your understanding. Be sure to complete these before moving on to the next module!
 
