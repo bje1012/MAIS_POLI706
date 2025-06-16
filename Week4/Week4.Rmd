@@ -1,0 +1,259 @@
+---
+title: "Randomization"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+```
+
+
+In the previous module, we laid the foundation for understanding causal inference: how to define causal effects using counterfactuals, why assumptions like unit homogeneity and conditional independence matter, and what makes a good causal theory. But even with a solid theory and carefully specified assumptions, a key challenge remains—how can we actually estimate causal effects in practice?
+
+In this module, we will review some key concepts of causal inference and then dive into the logic of random assignment. We will explore why randomization is such a powerful tool in causal research, and how it helps us overcome confounding. We'll also implement random assignment and estimate treatment effects using R, so you can gain hands-on experience in designing and analyzing randomized experiments.
+
+## Part 1: Review - Why Is Causal Inference Difficult?
+
+Before we dive into randomization, let’s take a moment to revisit why causal inference is fundamentally hard. At the heart of the challenge are two concepts: the problem of "ceteris paribus" and the presence of confounding variables.
+
+### The concept of Ceteris Paribus
+
+“Ceteris paribus” is a Latin phrase meaning all other things being equal. In causal inference, it refers to the ideal situation where we can isolate the effect of one variable by holding everything else constant. When we ask whether X causes Y, we’re really asking: what would Y have looked like if X had been different, but everything else stayed the same?
+
+But here’s the problem: we never get to observe both potential outcomes for the same unit at the same time. Suppose we want to know whether a new civic education program improves voter trust in EMBs (Election Management Bodies). For any individual, we only see one outcome—what happens with the program or what happens without it—but never both. We can’t split the same person into two parallel worlds and observe both possibilities.
+
+To get around this, we often compare across units: for instance, comparing someone who received the program to someone who didn’t. But no two individuals are exactly the same. They may differ in countless ways—income, educational backgrounds, race—that also affect the outcome. This makes the ceteris paribus condition difficult to achieve in practice. Any observed difference in outcomes may be due to these other differences, not the treatment itself.
+
+### Confounding Variables
+
+Even if we have two units and the other doesn’t, there’s still a problem: confounding variables—factors that influence both the treatment and the outcome, creating a spurious correlation.
+
+We discussed this in the last module. For instance, imagine we are studying whether civil war reduces EMB capacity. One potential confounder is state capacity. Countries with weaker state capacity may be more likely to experience civil war, and also more likely to have ineffective EMBs. If we observe a negative correlation between civil war and EMB capacity without controlling for state capacity, we might wrongly conclude that civil war is the cause of weak EMBs, when in fact both are driven by underlying institutional weakness.
+
+This is the danger of confounding: we misattribute the effect of a third variable to the treatment. Unless we address this—by controlling for confounders or eliminating them through design—we can’t make valid causal claims.
+
+## Part 2: What Is Randomization?
+
+Randomization refers to the process of assigning units (such as individuals, villages, or countries) to treatment and control groups by chance, rather than based on any observable or unobservable characteristic.
+
+By chance means that the assignment is done using a random process—like flipping a coin, using a random number generator, or drawing names from a hat—so that every unit has a known and equal probability of being assigned to any group. This ensures that the assignment is not influenced by researcher judgment, participant preferences, or any characteristics of the units themselves.
+
+### Definition and Logic
+
+At its core, **randomization** means that each unit—whether it’s an individual, village, or country—has an equal probability of being assigned to either the treatment or control group. This chance-based assignment eliminates systematic differences between groups *before* the treatment is applied. As a result, any difference we observe in outcomes *after* the treatment can be more confidently attributed to the treatment itself.
+
+Randomization plays a key role in addressing two major challenges in causal inference: the **ceteris paribus** problem and **confounding variables**.
+
+### How Randomization Solves the Ceteris Paribus Problem
+
+Randomization helps solve the *ceteris paribus* problem—not by allowing us to observe both potential outcomes for the same unit (which is impossible), but by creating groups that are statistically equivalent at the time of assignment. Even though we can’t observe both outcomes for the same unit, we can use the average outcome in one group to approximate the counterfactual for the other. In this way, *all else being equal* is satisfied **by design**.
+
+
+### How Randomization Addresses Confounding
+
+Randomization also breaks the link between the treatment and any **confounding variables**. Because the assignment is not based on any observable or unobservable characteristic, potential confounders are—on average—equally distributed across the treatment and control groups. This balances both known and unknown factors that might otherwise bias our estimate, allowing us to isolate the effect of the treatment from pre-existing differences.
+
+### Benefits of Randomization
+
+Taken together, these features make randomization a useful tool for causal inference. First, it eliminates selection bias—in expectation. Because the assignment to treatment or control groups is determined purely by chance, it is not influenced by any characteristic of the units involved. This means that factors such as prior beliefs or socioeconomic status are not driving group assignment. As a result, we can be more confident that the groups are comparable at baseline.
+
+Second, randomization balances both observed and unobserved confounders. In observational studies, we often worry that hidden variables—ones we did not or could not measure—are skewing the results. But randomization neutralizes this concern by ensuring that, on average, all relevant variables are equally distributed across the treatment and control groups. This balance allows us to isolate the effect of the treatment without worrying that confounding variables are driving the observed outcomes.
+
+Finally, randomization enables clean and credible estimates of causal effects. When treatment is assigned randomly, any differences in the outcome between the treatment and control groups can be attributed to the treatment itself—rather than to pre-existing differences. This clarity strengthens the internal validity of our research and provides a solid foundation for making causal claims.
+
+## Part 3: Designing a Randomized Experiment
+
+Designing a randomized experiment involves several key steps. In this part, we will walk through the process of setting up a randomized experiment, using a practical example to demonstrate how random assignment works and how it enables us to make valid causal inferences.
+
+### Defining the Treatment and Control Groups
+
+The first step is to clearly define what constitutes the treatment and the control conditions. The treatment group receives the intervention or stimulus of interest—such as a new policy, program, or incentive—while the control group does not. This comparison group serves as a baseline against which the effects of the treatment can be measured.
+
+### Random Assignment
+
+Once we’ve identified the units and defined the treatment, we assign units to treatment and control groups randomly. This ensures that any pre-existing differences across units—both observed and unobserved—are evenly distributed across groups, thereby eliminating systematic bias.
+
+To illustrate this in R, we use a `population` dataset available on Blackboard. The dataset contains 6,876 observations and includes key demographic and economic variables such as income, sex, age, and race. Suppose we are evaluating the impact of a hypothetical intervention—such as a financial literacy workshop—on income levels. In this dataset, units have already been randomly assigned to either a treatment or control group. The treatment assignment was made independently of all variables, except for Income_t2, which reflects post-intervention income and is designed to capture the treatment’s potential effects. Our goal is to estimate the impact of the intervention by comparing income levels before (t1) and after (t2) the treatment.
+
+```{r, warning=FALSE}
+# Import the dataset
+population <- read.csv("population.csv")
+
+# View the first few rows
+head(population[c("Income_t1", "Income_t2", "assignment", "SEX", "EDUCATION", "ETHNIC.CLASS")], 5) %>%
+  kable() %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+```
+
+Now, let's draw graphs to check whether the assignment was truly random.
+
+```{r, fig.height= 8, fig.width=10}
+library(tidyverse)
+library(dplyr)
+library(scales)
+
+p1 <- population %>%
+  group_by(assignment, Income_t1_range) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(assignment) %>%
+  ggplot(aes(x = Income_t1_range, y = count, fill = factor(assignment))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y= "Count", x = "") +
+  ggtitle("Distribution of Income (t1)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none",
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(
+    name = "Assignment",
+    values = c("0" = "#619CFF", "1" = "#F8766D"),
+    labels = c("0" = "Control", "1" = "Treatment")
+  )
+
+p2 <- population %>%
+  group_by(assignment, EDUCATION) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(assignment) %>%
+  ggplot(aes(x = EDUCATION, y = count, fill = factor(assignment))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "", x = "") +
+  ggtitle("Distribution of EDUCATION") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_fill_manual(
+    name = "Assignment",
+    values = c("0" = "#619CFF", "1" = "#F8766D"),
+    labels = c("0" = "Control", "1" = "Treatment")
+  )
+
+p3 <- population %>%
+  group_by(assignment, ETHNIC.CLASS) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(assignment) %>%
+  ggplot(aes(x = ETHNIC.CLASS, y = count, fill = factor(assignment))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Count", x = "") +
+  ggtitle("Distribution of ETHNIC CLASS") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none") +
+  scale_fill_manual(
+    name = "Assignment",
+    values = c("0" = "#619CFF", "1" = "#F8766D"),
+    labels = c("0" = "Control", "1" = "Treatment")
+  )
+
+p4 <- population %>%
+  group_by(assignment, HOUSEHOLD.SIZE) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(assignment) %>%
+  ggplot(aes(x = HOUSEHOLD.SIZE, y = count, fill = factor(assignment))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "", x = "") +
+  ggtitle("Distribution of Household Size") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_fill_manual(
+    name = "Assignment",
+    values = c("0" = "#619CFF", "1" = "#F8766D"),
+    labels = c("0" = "Control", "1" = "Treatment")
+  )
+
+library(patchwork)
+p1 + p2 + p3 + p4
+```
+
+As the graphs show, the distribution of categories within each variable is nearly identical between the treatment and control groups. This suggests that the random assignment was successful in balancing these baseline characteristics, which strengthens the validity of any causal inferences we make from the treatment effect.
+
+## Part 4: Interpreting Experimental Results
+
+Once we have conducted a randomized experiment, the next step is to interpret the results in terms of causal effects. In this section, we use the same `population` dataset to illustrate how we can understand treatment effects both at the individual and aggregate levels.
+
+### Individual Treatment Effect (ITE)
+
+In theory, the **Individual Treatment Effect** is the difference in the outcome we would observe for a single unit (e.g., a person) under treatment versus under control. For person *i*, this is defined as:
+
+$$
+\text{ITE}_i = Y_i(1) - Y_i(0)
+$$
+
+where $Y_i(1)$is the potential income of individual *i* if treated, and $Y_i(0)$ is the income if not treated.
+
+However, in practice, we can never observe both potential outcomes for the same individual. We only see one outcome—either under treatment or control. This is known as the **Fundamental Problem of Causal Inference**. Because of this limitation, we shift our attention to the **Average Treatment Effect**.
+
+### Average Treatment Effect (ATE)
+
+The **Average Treatment Effect (ATE)** is the average of the individual treatment effects across all units in the population:
+
+$$
+\text{ATE} = \mathbb{E}[Y(1) - Y(0)]
+$$
+
+Randomization allows us to estimate this quantity by comparing the average outcomes in the treatment group to those in the control group:
+
+$$
+\widehat{\text{ATE}} = \bar{Y}_{\text{treat}} - \bar{Y}_{\text{control}}
+$$
+
+Because random assignment ensures that the two groups are statistically equivalent (on average), this simple difference in means gives us an unbiased estimate of the treatment's causal effect.
+
+### Example Using the `population` Dataset
+
+Let’s suppose we conducted a financial literacy intervention using the `population` dataset. The individuals are randomly assigned to the treatment and control groups, we want to know whether the treatment group, on average, has higher income than the control group.
+
+We can estimate the Average Treatment Effect (ATE) by comparing the mean values of Income_t2 across the two groups:
+
+```{r}
+population %>%
+  group_by(assignment) %>%
+  summarise(mean_income = mean(Income_t2, na.rm = TRUE))
+```
+
+The output shows:
+
+- Control group (assignment = 0): $35,370.17
+
+- Treatment group (assignment = 1): $39,295.73
+
+The estimated ATE is : 
+
+```{r}
+39295.73 - 35370.17
+```
+
+$$
+\text{ATE} = 39295.73 - 35370.17 = 3925.56
+$$
+
+This means that, on average, individuals in the treatment group earned about $3,926 more than those in the control group after the intervention. Because the treatment was randomly assigned, this difference can be interpreted as the causal effect of the intervention, assuming no violations of the randomization process.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we took a deep dive into how randomized experiments help us identify causal effects in social science research. We began by revisiting the fundamental challenges of causal inference—namely, the ceteris paribus problem and confounding—and discussed why observational data alone often falls short when it comes to making credible causal claims.
+
+We then explored the logic of randomization and saw how it helps solve these problems by ensuring that treatment and control groups are statistically equivalent at baseline. Random assignment breaks the link between the treatment and potential confounders (both observed and unobserved), thereby allowing us to isolate the effect of the treatment.
+
+In the next steps, you will have the opportunity to reinforce these concepts through a quiz and Problem Set 2. These exercises are designed to help you apply your understanding of randomized experiments, from identifying key assumptions to estimating treatment effects using real data. Be sure to complete both before moving on to the next module!
+
