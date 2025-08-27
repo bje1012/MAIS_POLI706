@@ -1,0 +1,251 @@
+---
+title: "Diagnostics"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+rm(list = ls())   
+library(ggeffects)
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+library(tidyverse)
+library(haven)
+library(stargazer)
+```
+
+In the previous module, we explored **parametric bootstrapping** as a way to assess uncertainty in model estimates and expected values. In this module, we shift our focus to **model diagnostics**—an essential step for evaluating whether a regression model meets the assumptions necessary for valid inference and reliable prediction.
+
+The module is divided into two main parts. In **Part 1**, we will learn diagnosing assumptions in linear regression using residual analysis and formal diagnostic tests. In **Part 2**, we will focus on model selection techniques and practical diagnostics in R.
+
+By the end of this module, you will be able to:  
+
+- Identify and interpret common assumption violations in regression models  
+
+- Apply variance inflation factor (VIF) analysis to detect multicollinearity  
+
+- Compare models using Adjusted \(R^2\), AIC, BIC, and cross-validation results  
+
+- Make informed decisions about model specification based on diagnostic evidence
+
+## Part 1: Diagnosing Assumptions in Linear Regression
+
+### Introduction to Model Diagnostics
+
+Model diagnostics are the set of techniques we use to check whether a regression model meets the assumptions it relies on. Even if a model fits the data well at first glance, violations of these assumptions can lead to biased estimates, misleading standard errors, and unreliable predictions. Diagnostics help us detect these problems early so that we can adjust the model—or our interpretation—accordingly.
+
+To understand why diagnostics matter, it helps to first recall the main assumptions behind Ordinary Least Squares (OLS) regression. 
+
+1. Linearity – The relationship between the predictors and the outcome should be linear.
+
+2. Constant variance – The spread of the errors should be roughly the same across all levels of the predictors.
+
+3. Normality – The errors should follow a roughly bell-shaped distribution.
+
+4. Independence – The observations should be independent of each other.
+
+If any of these assumptions are violated, the quality of our inferences can suffer. The challenge is that violations are not always obvious from the model’s output—this is where residual-based diagnostics come in.
+
+Residuals—the differences between the observed values and the predictions from the model—act as a window into whether the assumptions hold. Patterns in the residuals can reveal specific problems: curvature may indicate nonlinearity, a widening spread can signal non-constant variance, skewness or heavy tails suggest non-normality, and extreme residuals can highlight outliers or influential observations.
+
+By analyzing residuals, we not only detect these issues but also gain clues about how to fix them. This makes residual-based diagnostics a critical bridge between fitting a model and trusting its results. In the next sections, we’ll see how to use visual tools and statistical tests to carry out these checks and ensure our regression models are both valid and reliable.
+
+### Diagnosing Nonlinearity, Non-Constant Variance, and Non-Normality of Errors
+
+Why Nonlinearity matters:
+
+OLS assumes that the relationship between each predictor and the outcome is linear. If this assumption is violated, the model’s predictions can be systematically biased. This bias can distort coefficient estimates, making them misleading, and can reduce the model’s predictive accuracy. When the true relationship between 
+x and y is curved—for example, y decreases as x increases up to a certain point, and then y begins to increase again—a simple OLS model that assumes a straight-line relationship will misrepresent the data. The fitted line will try to capture this curvature with a single slope, effectively averaging the upward and downward trends into one direction.
+
+Why Non-Constant Variance matters:
+
+The constant variance assumption requires that the spread of the errors remains roughly the same across all levels of the predictors or fitted values. When this is violated, standard errors may be biased, leading to unreliable hypothesis tests and confidence intervals. This means we could overstate or understate the significance of predictors, even if the coefficient estimates themselves remain unbiased.
+
+Why Non-Normality matters:
+
+OLS coefficient estimates remain unbiased even if the error terms are not normally distributed. However, when the error distribution is heavily skewed or has thick tails, the estimated standard errors can become inaccurate. This inaccuracy affects all inference based on the model—t-tests, p-values, and confidence intervals—making them unreliable.
+
+#### Example: Diagnosing Assumptions with the V-Dem Data
+
+In this example, we use the V-Dem dataset to illustrate how to check OLS assumptions in practice. First, we load the dataset, remove any rows with missing values, and create a new variable loggedgdp by taking the natural log of GDP per capita. We then filter the dataset to include only observations from the year 2000 and fit a linear model predicting EDI from three predictors:
+
+```{r, fig.width= 8, fig.height=8, fig.align='center'}
+vdem <- read.csv("vdem.csv") %>% 
+  drop_na() %>%
+  mutate(loggedgdp = log(e_gdppc + 0.0001))
+vdem00 <- vdem %>% filter(year == 2000)
+model1 <- lm(v2x_polyarchy ~ loggedgdp + v2elembaut + v2elembcap, data = vdem00)
+par(mfrow = c(2,2))
+plot(model1)
+```
+
+We now have four diagnostic plots for our model.
+
+The first plot (Residuals vs. Fitted) is used to check both linearity and constant variance. In a well-specified model, residuals should be randomly scattered around zero with no visible pattern. In our case, the residuals are generally centered around zero, but the red smooth line shows a slight curve at both the lower and higher ends of the fitted values. This indicates a mild departure from linearity. The spread of residuals is fairly consistent, so there is no strong evidence of heteroscedasticity.
+
+The second plot (Normal Q-Q) assesses whether residuals are normally distributed. If they are, the points will align closely with the diagonal line. Here, most points follow the line well, but there are small deviations at both ends, suggesting slight departures from normality. These deviations indicate that a few extreme observations may be outliers.
+
+The third plot (Scale-Location) is another check for constant variance. A horizontal red line with evenly spread points suggests that the assumption holds. In our plot, the red smooth line is mostly flat, with only a slight upward bend at higher fitted values, implying that variance is largely constant.
+
+The fourth plot (Residuals vs. Leverage) helps detect high-leverage and influential observations. Most observations have low leverage, but a few—such as cases 95, 117, and 124—show higher leverage. None, however, exceed the Cook’s distance threshold, so they are unlikely to be highly influential.
+
+### Diagnosing Multicollinearity
+
+Why it matters:
+
+Multicollinearity occurs when two or more predictors in a regression model are highly correlated with each other. This inflates the standard errors of the affected coefficients, making it harder to detect statistically significant effects. While the overall model fit may remain high, the individual coefficients can become unstable—changing dramatically with small modifications to the data or model specification—and their signs or magnitudes may not be meaningful. Severe multicollinearity can therefore obscure the true relationships between predictors and the outcome.
+
+Variance Inflation Factor (VIF):
+
+The Variance Inflation Factor is a widely used diagnostic for multicollinearity. It quantifies how much the variance of a regression coefficient is inflated due to linear relationships with other predictors.
+
+- A VIF of 1 indicates no correlation with other predictors.
+
+- Values between 1 and 5 suggest moderate correlation but are usually acceptable.
+
+- Values above 10 are often flagged as problematic, although thresholds can vary depending on the context and field.
+
+Let’s apply this to our model.
+
+```{r, message=FALSE}
+# Loads the 'car' package, which includes the vif() function
+library(car) 
+model <- lm(v2x_polyarchy ~ loggedgdp + v2elembaut + v2elembaut_ord, data = vdem)
+VIF <- data.frame(vif(model))
+rownames(VIF) <- c("GDP", "EMB aut", "EMB aut ord")
+kable(VIF, caption = "VIFs for each independent variable", col.names= c("VIFs"))
+```
+
+The results show that GDP has a low VIF (1.46), indicating no multicollinearity concerns for this variable. However, both EMB autonomy (15.14) and EMB autonomy (ordinal) (15.46) have VIF values well above the commonly used threshold of 10. This indicates a serious multicollinearity problem between these two predictors. In practice, we should consider removing one of these variables or combining them to reduce redundancy and stabilize the coefficient estimates.
+
+## Part 2:  Model Selection and Practical Diagnostics in R
+
+### Introduction to Model Selection
+
+In regression analysis, we often have multiple possible models to choose from—different combinations of predictors, transformations, or interaction terms. Model selection is the process of deciding which model best captures the underlying relationship in the data while remaining interpretable and reliable. Choosing an appropriate model matters because it affects not only predictive accuracy but also the validity of our inferences and the conclusions we draw.
+
+A more complex model (with many predictors and parameters) can often fit the training data better, but this does not necessarily mean it will perform well on new data. Conversely, a model that is too simple may fail to capture important patterns. Good model selection seeks the “sweet spot” where the model is complex enough to explain meaningful variation but simple enough to generalize to unseen cases.
+
+Types of model selection criteria
+We can evaluate models using a combination of in-sample and out-of-sample criteria:
+
+In-sample fit: Adjusted $R^2$
+Adjusted $R^2$ adjusts the regular $R^2$ for the number of predictors, penalizing overly complex models that do not meaningfully improve fit.
+
+Out-of-sample fit:
+
+- Akaike Information Criterion (AIC) – Balances model fit with complexity; lower values indicate better trade-offs.
+
+- Bayesian Information Criterion (BIC) – Similar to AIC but imposes a stronger penalty for complexity, favoring simpler models when the improvement in fit is small.
+
+- Cross-validation – Splits the data into training and testing sets (or multiple folds) to directly evaluate predictive performance on unseen data.
+
+By combining these approaches, we can make informed choices about which model is most appropriate for our research question and data.
+
+### Recap $R^2$
+
+In module 8, we introduced $R^2$ and adjusted $R^2$ as measures of model fit. $R^2$ represents the proportion of the total variation in the outcome variable that is explained by the model. A higher $R^2$ means the model explains more of the variation in the data.
+
+However, one important thing to remember is that $R^2$ will always increase when more predictors are added—even if those predictors do not meaningfully improve the model. This can give a false impression of better performance. That’s why we use Adjusted $R^2$, which accounts the number of predictors in the model and only increases when the added variables improve the model beyond what would be expected by chance.
+
+So when evaluating model fit in multiple regression, rely on adjusted $R^2$ rather than $R^2$ alone to avoid being misled by unnecessary predictors.
+
+### Using AIC and BIC for Model Selection
+
+Recap AIC, which we learned in Module 10. The Akaike Information Criterion (AIC) balances model fit and complexity. Lower AIC values indicate a better-fitting model that avoids overfitting. AIC is especially useful for comparing non-nested models—models that do not have a simple subset–superset relationship in their predictors.
+
+Then what is BIC?
+
+The Bayesian Information Criterion (BIC) is similar in form to AIC but applies a stronger penalty for model complexity:
+
+$$
+BIC = -2logL + klog(n)
+$$
+
+Where: 
+
+- $\log L$ is the log-likelihood of the model
+
+- $k$ is the number of estimated parameters
+
+- $n$ is the sample size. 
+
+Like AIC, lower BIC values indicate a better model, but because the penalty term $klog(n)$ grows with sample size, BIC tends to favor simpler models more strongly — especially in large datasets.
+
+Let's see this using our vdem data:
+
+```{r, message=FALSE, warning=FALSE}
+library(modelsummary)
+
+vdem <- vdem %>%
+  group_by(country_id) %>%
+  mutate(laggedcw = dplyr::lag(e_civil_war, n = 1)) %>%
+  ungroup()
+
+modela <- glm(e_civil_war ~ v2x_polyarchy,
+              family = binomial(link = "logit"),
+              data = vdem)
+
+modelb <- glm(e_civil_war ~ v2x_polyarchy + laggedcw,
+              family = binomial(link = "logit"),
+              data = vdem)
+
+modelc <- glm(e_civil_war ~ v2x_polyarchy + v2elembaut,
+              family = binomial(link = "logit"),
+              data = vdem)
+
+modelsummary(
+  list(
+    "Model A" = modela,
+    "Model B" = modelb,
+    "Model C" = modelc
+  ),
+  gof_omit = "RMSE")
+```
+
+Comparing the AIC and BIC scores of Model A and Model B, we see a substantial improvement in Model B: the AIC drops from 3156.7 to 1486.5 and the BIC from 3170.7 to 1507.4. However, Model C—despite including more predictors—has higher AIC and BIC values than Model B. This suggests that the addition of lagged civil war status is the key factor driving the improvement in model fit when examining the relationship between EDI and civil war status.
+
+### Cross-Validation for Model Evaluation
+
+Cross-validation is used to estimate a model’s predictive performance on unseen data. The idea is to split the dataset into multiple subsets (folds), train the model on some folds, and test it on the remaining fold(s). This process is repeated so each observation is used for both training and testing, giving a more reliable estimate of out-of-sample performance. It helps detect overfitting by showing how the model performs on data it hasn’t seen before and provides a better assessment of generalization error than in-sample fit measures like AIC or adjusted $R^2$.
+
+Example: 10-fold cross-validation for MSE
+
+We used 10-fold cross-validation to estimate the out-of-sample predictive performance of **Model A** (Model 2 from earlier).  
+The `cv.glm()` function from the **boot** package returns two values stored in `cv_results$delta`:
+
+```{r, message=FALSE, warning=FALSE}
+library(boot)
+set.seed(123)  # for reproducibility
+cv_results <- cv.glm(data = vdem, glmfit = modela, K = 10)
+cv_results$delta
+```
+
+The first value is the raw cross-validation estimate of the mean squared error (MSE), and the second is the bias-corrected MSE. A smaller MSE indicates higher predictive accuracy, with values closer to 0 reflecting better performance. An MSE of 0.047 means that, on average, the squared difference between the model’s predicted probabilities and the actual outcomes is about 0.047. In this case, the two values are nearly identical, indicating that the bias correction has little effect.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we reviewed the key assumptions underlying OLS regression—linearity, constant variance, normality of errors, and independence—and explored why they matter for valid inference. We learned how to use residual-based diagnostics and visual tools to detect violations of these assumptions, and we applied Variance Inflation Factor (VIF) analysis to identify and address multicollinearity in our models.
+
+We also compared models using Adjusted $R^2$ to evaluate in-sample fit, and AIC/BIC to balance fit and complexity. In addition, we explored cross-validation as a way to estimate out-of-sample predictive performance and detect overfitting.
+
+In the next (final) module, we will recap everything we have learned throughout the course. Before moving on, don’t forget to complete the quiz for this module!

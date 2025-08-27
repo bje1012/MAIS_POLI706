@@ -1,0 +1,392 @@
+---
+title: "Generalized Linear Modeling and Maximum Likelihood I : Introduction"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+rm(list = ls())   
+library(ggeffects)
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+library(tidyverse)
+```
+
+
+In the last three modules, we explored Ordinary Least Squares (OLS) regression. We learned how to estimate relationships between variables using both simple and multiple regression models, interpret coefficients, assess model fit, and apply these techniques to real-world data using R. We also learned how to address common issues such as collinearity and the non-normality of residuals.
+
+In this module, we will take a step further and learn about Generalized Linear Models (GLMs) and the Maximum Likelihood Estimation (MLE) approach that underlies them. GLMs allow us to model outcomes that do not follow the assumptions of OLS—such as binary, count, or categorical data.
+
+In Part 1, we compare Ordinary Least Squares (OLS) with Maximum Likelihood Estimation (MLE), introducing the logic of likelihood-based methods. Part 2 introduces the Generalized Linear Model (GLM) framework, explaining and when to use it and its key components — A ramdom component, a linear predictor, and a link function.
+
+By the end of this module, you’ll be able to:
+
+- Understand the logic and steps behind Maximum Likelihood Estimation (MLE)
+
+- Describe the structure of Generalized Linear Models (GLMs)
+
+- Recognize when GLMs are appropriate instead of OLS
+
+## Part 1: OLS vs. MLE — Understanding Maximum Likelihood Estimation
+
+### Review: When OLS works well — assumptions and limitations
+
+In previous modules, we learned that Ordinary Least Squares (OLS) is a powerful tool for estimating linear relationships between a dependent variable and one or more independent variables. However, OLS relies on a number of key assumptions:
+
+- The dependent variable is continuous and normally distributed
+
+- The relationship between predictors and the outcome is linear
+
+- The variance of the errors (residuals) is constant
+
+- Errors are independent and normally distributed
+
+When these assumptions hold, OLS provides unbiased, efficient, and consistent estimates of model parameters. But when the outcome is not continuous—for example, when it is binary (e.g., war/no war) or a count (e.g., number of protests)—OLS breaks down. It may yield predicted values outside the valid range (e.g., probabilities below 0 or above 1), and its estimates can be misleading.
+
+For instance, consider a case where the dependent variable is civil war, coded as a binary variable (1 = civil war occurred, 0 = no civil war). If we use an OLS model to analyze this relationship:
+
+```{r, include=FALSE}
+vdem <- read.csv("vdem.csv") %>% drop_na()
+```
+
+```{r, message=FALSE}
+fit <- lm(e_civil_war ~ v2x_polyarchy, data = vdem)
+summary(fit)
+```
+
+```{r, echo=FALSE, fig.align='center'}
+eff1 <- ggpredict(fit, terms = "v2x_polyarchy")
+plot(eff1, colors = "blue")+
+  labs(title = NULL,
+       x = "\nEMB v2x_polyarchy",
+       y = "Civil war\n") +
+  theme_minimal()
+```
+
+The result suggests that a one-unit increase in electoral democracy is associated with a 0.09 decrease in the probability of civil war, and the graph shows that when electoral democracy is equal to 1, the predicted value of civil war falls below 0. However, this interpretation is problematic. Because civil war is not a continuous outcome, applying OLS in this context leads to results that are difficult to interpret and can even produce invalid predicted values. The concept of a “0.09 decrease in civil war” doesn’t make sense—civil war either occurs or it doesn’t. This is why we need models specifically designed for binary outcomes, such as logistic regression.
+
+This is where Maximum Likelihood Estimation (MLE) and Generalized Linear Models (GLMs) come into play.
+
+### Introduction to Likelihood
+
+#### The likelihood function
+
+**Likelihood** is a measure of how probable the observed data are, given a set of model parameters. The likelihood function expresses this formally. Suppose we observe a dataset $y_1, y_2, ..., y_n$ and believe the data come from a distribution with parameters $\theta$. The likelihood function $L(\theta)$ is: 
+
+$$
+L(\theta) = P(y_1, y_2, ..., y_n | \theta)
+$$
+
+This means:
+
+Given a specific choice of model parameters $\theta$, what is the probability of seeing exactly the data you observed?
+So if you change $\theta$, the likelihood function gives you a different number — the likelihood changes depending on how well those parameter values explain the data.
+
+If the observations are independent and identically distributed (i.i.d.), we can express the joint probability as a product of individual probabilities:
+
+$$
+L(\theta) = \prod_{i=1}^n P(y_i|\theta)
+$$
+
+The log-likelihood function:
+
+Because multiplying many small probabilities can result in very tiny numbers (which may lead to numerical instability), we typically work with the log-likelihood function, which simplifies computation and improves interpretability.
+
+The log-likelihood function is the natural logarithm of the likelihood:
+
+$$
+logL(\theta) = \sum_{i=1}^n logP(Y_i|\theta)
+$$
+
+In Maximum Likelihood Estimation (MLE), we choose the parameter values $\theta$ that maximize $logL(\theta)$ that make the observed data most probable under the assumed model.
+
+For example, suppose you're trying to estimate the probability that a coin lands heads. You don't know if it's a fair coin (50% heads) or a biased one, so you represent the unknown probability of heads as $\theta$, where $0 \leq \theta \leq 1$. Now, suppose you flip the coin 4 times and observe this sequence: $y = (1,0,1,1)$ where 1 = heads and 0 = tails.
+
+Given your observed data, the likelihood function is: 
+
+$$
+L(\theta) = P(1,0,1,1 | \theta) = \theta\cdot(1-\theta)\cdot\theta\cdot\theta = \theta^3(1-\theta)
+$$
+
+or the log-likelihood function
+
+$$
+logL(\theta) = logP(\theta) + logP(1- \theta) + logP(\theta) + logP(\theta)
+$$
+
+This tells you "How likely is it to observe 3 heads and 1 tail in this order, if the true probability of heads is $\theta$"
+
+Let's plug in a few values: 
+
+If $\theta = 0.5$(a fair coin), then 
+
+$$
+L(0.5) = 0.5^3(1-0.5) = 0.0625
+$$
+
+If $\theta = 0.8$(biased toward heads), then
+
+$$
+L(0.8) = 0.8^3(1-0.8) = 0.1024
+$$
+
+If $\theta = 0.9$(more biased toward heads), then
+
+$$
+L(0.9) = 0.9^3(1-0.9) = 0.0729
+$$
+
+From the values above, we see that $\theta = 0.8$ gives the highest likelihood of the observed data. So under MLE, we would estimate the probability of heads to be around 0.8, because it makes our actual data most probable. 
+
+**The goal of MLE is to find the value of $\theta$ that maximizes this likelihood function**: the values of the parameters that make the observed data most probable.
+
+#### Intuition behind maximizing the likelihood
+
+The basic intuition behind MLE is straightforward: **among all possible values of the parameters, which ones make the observed data most likely?**
+
+Imagine you’re trying to estimate the average height of people in a country. If your sample contains mostly people around 170 cm tall, then assuming a population mean of 170 cm would make the data “more likely” than assuming 150 cm or 190 cm. MLE chooses the parameter values that best explain the data.
+
+If we believe that y is drawn from a normal distribution with unknown mean $\mu$ and known variance $\sigma$, then the MLE for $\mu$ turns out to be the sample mean—just like in OLS.
+
+But the MLE works even when the data follow other distributions —like binomial or Poisson— and this flexibility makes it ideal for use in GLMs. 
+
+#### OLS vs. MLE
+
+Both OLS and MLE used to estimate parameters of linear mode. While OLS is distance-minimizing estimation method, MLE is a 'likelihood' maximization method based on joint probability density. 
+
+| **Concept**     | **OLS**                                      | **MLE**                                              |
+|----------------|-----------------------------------------------|------------------------------------------------------|
+| **Objective**   | Minimize sum of squared errors                | Maximize likelihood                                 |
+| **Assumptions** | Normal errors, linearity, constant variance   | Assumes a full probability model                     |
+| **Data type**   | Continuous dependent variable                 | Can handle binary, count, categorical outcomes       |
+| **Interpretation** | Focus on minimizing error                  | Focus on finding parameters that best explain the data |
+
+
+MLE becomes necessary when OLS is no longer appropriate—particularly when the dependent variable is not continuous, or when error terms are not normally distributed.
+
+## Part 2: What Are Generalized Linear Models (GLMs)?
+
+A **Generalized Linear Model (GLM)** is an extension of the linear regression framework that allows us to model non-continuous, non-normally distributed dependent variables—such as binary, count, or proportion data. GLMs provide a flexible way to model the mean of the response variable as a function of predictors, while accounting for the specific distribution that the data follow.
+
+Importantly, GLMs are estimated using Maximum Likelihood Estimation (MLE) rather than Ordinary Least Squares (OLS). Since the response variable in GLMs may follow a binomial, Poisson, or other non-normal distribution, the OLS assumptions no longer apply. Instead of minimizing squared errors, we maximize the likelihood of observing the data, given the chosen distribution and link function.
+
+A GLM consists of three components: 1. A random component, 2. A linear predictor, 3. A link function
+
+### A random component
+
+The random component specifies the distribution of the dependent variable $Y_i$, conditional on the predictors. Unlike OLS, which assumes normally distributed errors, GLMs allow the response variable to follow a distribution from the exponential family, such as:
+
+**Binomial (e.g., for binary outcomes)**
+
+ex) Modeling whether a country was experiencing civil war in a given year.
+
+**Poisson (e.g., for count data)**
+
+ex) Modeling the number of coups in a given year.
+
+**Normal (recovering standard linear regression)**
+
+ex) Modeling the Electoral Democracy Index as a continuous score.
+
+**Gamma or inverse Gaussian (for skewed continuous data)**
+
+ex) Modeling GDP per capita for countries (positive and right-skewed).
+
+Each observation $Y_i$ is assumed to be drawn independently from one of these distributions. The choice of distribution reflects the nature of your outcome variable and determines how the likelihood function is constructed for MLE.
+
+### A linear predictor
+
+In a Generalized Linear Model (GLM), the linear predictor is the part of the model that combines the explanatory (independent) variables to generate a prediction. It takes the following form:
+
+$$
+\eta_i = \alpha + \beta_1X_{i1} + \beta_2X_{i2} + \cdot\cdot\cdot+\beta_kX_{ik}
+$$
+
+Where:
+
+- $\eta_i$ is the linear predictor for the $i$-th observation
+
+- $\alpha$ is the intercept
+
+- $\beta_1, \beta_2,...,\beta_k$ are the regression coefficients
+
+- $X_{ij}$ represents the value of the $j$-th explanatory varable for the $i$-th observation
+
+This component is linear in parameters, even though the relationship between the predictors and the actual outcome may be nonlinear due to the transformation applied by the link function. The regressors $X_{ij}$ are prespecified functions of the explanatory variables. 
+
+#### Why Is It Called "Linear"?
+
+This expression is called "linear" because it is linear in the parameters $\alpha, \beta_1,...,\beta_k$. That means the predictors are multiplied by coefficients and added together—no exponents, square roots, or other nonlinear transformations of the parameters are used in this part of the model.
+
+Even though the final relationship between the predictors and the response variable may be nonlinear (due to the link function), the core structure for combining explanatory variables remains linear. That’s why this component retains the name linear predictor.
+
+### A link function $g(\cdot)$
+
+The link function defines the mathematical relationship between the mean of the response variable $\mu_i = E[Y_i]$ and the linear predictor $\eta_i$. It acts as a mathematical bridge that connects the outcome variable—which may have constraints (e.g., only values between 0 and 1)—to a linear equation that can take any real number. 
+
+The link function is written as:
+
+$$
+g(\mu_i) = \eta_i = \alpha + \beta_1X_{i1} + \beta_2X_{i2} + \cdot\cdot\cdot+\beta_kX_{ik}
+$$
+
+In ordinary linear regression, the outcome variable is assumed to be continuous and unbounded, and the mean $\mu_i$ is directly equal to the linear predictor $\eta_i$. However, this assumption breaks down when the outcome variable is constrained by nature. For example, when the dependent variable is binary (e.g., whether a country is experiencing civil war or not), so the expected value $\mu_i$ must lie between 0 and 1. But the linear predictor $\eta_i = \alpha + \beta_1X_{i1} + \beta_2X_{i2} + \cdot\cdot\cdot+\beta_kX_{ik}$ can be any real number, including negative values or values greater than 1.
+
+In such cases, using the raw $\eta_i$  would result in invalid predictions. The link function solves this problem by transforming the predicted mean $\mu_i$ so that it aligns with the scale and distribution of the outcome variable. In logistic regression, for instance, the logit link ensures that the linear predictor is transformed in a way that the resulting predicted probability always remains between 0 and 1:
+
+$$
+g(\mu_i) = log(\frac{\mu_i}{1-\mu_i}) = \eta_i
+$$
+
+This transformation allows us to model a binary outcome using a linear equation while respecting the natural constraints of the data.
+
+Because the link function is invertible, we can also write
+
+$$
+\mu_i = g^{-1}(\eta_i) = g^{-1}(\alpha + \beta_1X_{i1} + \beta_2X_{i2} + \cdot\cdot\cdot+\beta_kX_{ik})
+$$
+
+and, thus, the GLM may be thought of as a linear model for a transformation of the expected response or as a nonlinear regression model for the response. 
+
+**Examples of Common Link Functions**
+
+| **Model Type**        | **Link Function** \( g(\mu) \)                            | **Inverse Link** \( g^{-1}(\eta) \)                    | **Used For…**                    |
+|-----------------------|-----------------------------------------------------------|--------------------------------------------------------|----------------------------------|
+| Linear Regression     | \( g(\mu) = \mu \)                                         | \( \mu = \eta \)                                       | Continuous, unbounded data       |
+| Logistic Regression   | \( g(\mu) = \log\left(\frac{\mu}{1 - \mu}\right) \)       | \( \mu = \frac{1}{1 + e^{-\eta}} \)                    | Binary outcomes (0/1)            |
+| Poisson Regression    | \( g(\mu) = \log(\mu) \)                                   | \( \mu = e^{\eta} \)                                   | Count data (0, 1, 2, …)          |
+| Gamma Regression      | \( g(\mu) = \log(\mu) \) or \( g(\mu) = \frac{1}{\mu} \)   | \( \mu = e^{\eta} \) or \( \mu = \frac{1}{\eta} \)     | Skewed, positive data            |
+
+### Real-World Example: Modeling Civil War Onset Using Electoral Democracy Index
+
+Suppose we want to examine how the level of electoral democracy affects the likelihood that a country experiences civil war. Since the dependent variable—whether a civil war occurred—is binary (1 = civil war, 0 = no civil war), we cannot use ordinary least squares (OLS), which assumes a normally distributed outcome. Instead, we turn to a Generalized Linear Model (GLM) with a binomial distribution and a logit link function.
+
+```{r}
+model <- glm(e_civil_war ~ v2x_polyarchy, family = binomial(link = "logit"), data = vdem)
+```
+
+This model includes:
+
+- A binary dependent variable `e_civil_war` (1 = civil war, 0 = no civil war)
+
+- A continuous explanatory variable `v2x_polyarchy` (Electoral Democracy Index)
+
+#### 1. The random component
+
+In this model, **the random component** assumes that the response variable `e_civil_war` follows a **Bernoulli distribution**, which is a special case of the binomial distribution for binary outcomes.
+
+This means: 
+
+- For each country-year observation, $Y_i \in \{0,1\}$
+
+- $Y_i$ ~ $\text{Bernoulli}(\mu_i)$, where $\mu_i$ is the probability that civil war occurs
+
+#### 2. Linear Predictor
+
+In this model, the linear predictor is:
+
+$$
+\eta_i = \alpha + \beta\cdot\text{v2x_polyarchy}_i
+$$
+
+In our model, the estimated coefficients are:
+
+```{r}
+coef(model)
+```
+
+Therefore, the equation for the linear predictor is:
+
+$$
+\eta_i = -2.134401 -2.458711 \cdot\text{v2x_polyarchy}_i
+$$
+
+#### 3. Link Function
+
+Because the outcome is binary, we use the logit link function, which relates the expected value $\mu_i$ to the linear predictor $\eta_i$:
+
+$$
+g(\mu_i) = log(\frac{\mu_i}{1-\mu_i}) = \eta_i
+$$
+
+This function maps probabilities $\mu_i \in (0,1)$ to the full range of real numbers, which makes them compatible with the linear predictor $\eta_i$. 
+
+To recover the predicted probabilities from the linear predictor, we apply the inverse of the logit function:
+
+$$
+\mu_i = \frac{1}{1+e^{-\eta_i}}
+$$
+
+In our model, the estimated linear predictor is:
+
+$$
+\eta_i = -2.134401 -2.458711 \cdot\text{v2x_polyarchy}_i
+$$
+
+This means that for a given value of electoral democracy (v2x_polyarchy), we can compute the log-odds of civil war using this equation.
+
+To recover the predicted probability of civil war, we apply the inverse of the logit function:
+
+$$
+\mu_i = \frac{1}{1+e^{2.134401 + 2.458711 \cdot\text{v2x_polyarchy}_i}}
+$$
+
+This function converts the log-odds of civil war into an interpretable probability, enabling us to make meaningful predictions from the model.
+
+For example, if $\text{v2x_polyarcy}_i = 0.5$, then $\eta_i = -2.134401 -2.458711 \cdot0.5 = -3.364$ and $\mu_i = \frac{1}{1+e^{3.364}} \approx 0.033$
+
+This means a country with a democracy level 0.5 is predicted to have only about a 3.3% chance of experiencing civil war in that year. 
+
+### MLE vs. GLM — What's the Difference?
+
+Maximum Likelihood Estimation (MLE) and Generalized Linear Models (GLMs) are closely related, but they are not the same thing. They serve different roles in statistical modeling, and understanding the distinction is essential for interpreting and fitting models correctly.
+
+Maximum Likelihood Estimation (MLE) is a method for estimating parameters of a statistical model.
+
+- It works by finding the values of the parameters that maximize the likelihood of observing the data you actually saw.
+
+- The likelihood function measures how probable your observed data are, given a particular model and parameter values.
+
+- MLE selects the parameter values that make your data as "likely" as possible under the model.
+
+Generalized Linear Models (GLMs) are a framework for building regression models that go beyond traditional linear regression. GLMs allow us to model a wider range of outcome types, such as:
+
+- Binary outcomes (e.g., war vs. no war),
+
+- Count data (e.g., number of protests),
+
+- Proportions or rates (e.g., share of women in parliament),
+
+- Skewed positive values (e.g., GDP per capita).
+
+In summary, Maximum Likelihood Estimation (MLE) is a method used to answer the question: What parameter values best explain my data? It serves as the estimation engine behind many statistical models, including Generalized Linear Models (GLMs). On the other hand, GLMs are a modeling framework designed to answer a different question: How can I model a specific type of outcome—such as a binary, count, or skewed variable—using predictors? While GLM provides the structure for modeling diverse types of data, MLE provides the method for estimating the model’s parameters. The two work hand in hand: GLM specifies the model, and MLE is what makes it run.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we expanded our understanding of regression modeling by introducing Generalized Linear Models (GLMs) and the Maximum Likelihood Estimation (MLE) framework.
+
+We began by identifying the limitations of Ordinary Least Squares (OLS) regression—particularly when the outcome variable is not continuous or normally distributed. We saw that OLS is not appropriate for binary or count outcomes because it can generate predictions outside the valid range and lead to misleading interpretations. To address these challenges, we explored MLE as a flexible estimation method that works by finding the parameter values that make the observed data most likely. Unlike OLS, which minimizes squared errors, MLE maximizes the likelihood of the data under the assumed model.
+
+We then learned the Generalized Linear Model (GLM) framework, which generalizes linear regression to accommodate a broader class of outcome types. We broke the GLM into its three core components: A random component, a linear predictor, and a link function. Using a real-world example—modeling civil war onset based on a country's level of electoral democracy—we applied GLM with a logistic link function and interpreted the coefficients, linear predictor, and predicted probabilities.
+
+In the next module, we will explore how to interpret and visualize marginal effects in Generalized Linear Models (GLMs), providing tools to better understand and communicate the substantive meaning of your results. We will also cover model evaluation techniques, including goodness-of-fit measures and diagnostic tools tailored for non-linear models. Before moving on, please complete the short quiz and Problem Set 7 to reinforce your understanding of GLMs and Maximum Likelihood Estimation.
+

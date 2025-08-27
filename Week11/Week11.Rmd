@@ -1,0 +1,430 @@
+---
+title: "Type of Variables and Relationships"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+rm(list = ls())   
+library(ggeffects)
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+library(tidyverse)
+library(haven)
+library(stargazer)
+```
+
+
+In the previous module, we explored how Generalized Linear Models (GLMs) extend the linear regression framework to handle a wider variety of outcome types. We learned how to specify and interpret GLMs, examined different link functions.
+
+In this module, we turn our attention to how variables relate to one another and how to evaluate the quality of our models. Part 1 introduces several important concepts that influence how we model relationships between variables—including power transformations, time dependence, clustered errors, and fixed effects. Part 2 focuses on model selection, equipping you with the tools to assess how well your model performs. We’ll cover a range of evaluation metrics, including p-values, R-squared, information criteria (AIC and BIC), and measures of predictive accuracy.
+
+By the end of this module, you will be able to:
+
+- Recognize when and how to apply variable transformations
+
+- Account for time-based and clustered patterns in your data
+
+- Understand and implement fixed effects
+
+- Evaluate model fit using appropriate diagnostic tools
+
+## Part 1: Variables and Relationships
+
+In this part, we are going to learn how to model more complex relationships between variables and improve our regression models by addressing key issues such as non-linearity, time dependence, clustering, and unobserved heterogeneity.
+ 
+### Power transformations
+
+Sometimes the relationship between an independent variable and the dependent variable is not linear. Power transformations such as squared ($x^2$), cubic ($x^3$), and higher-order terms help model such non-linear relationships.
+
+**Linear**: This assumes a constant effect of x on y.
+
+$$
+y = \beta_0 + \beta_1 x
+$$
+
+**Quadratic**: This allows for a parabolic (U-shaped or inverted U-shaped) relationship, capturing diminishing or increasing returns.
+
+$$
+y = \beta_0 + \beta_1 x + \beta_2 x^2
+$$
+
+**Cubic**: This allows for one bend or inflection point, capturing S-shaped curves or changing curvatures.
+
+$$
+y = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3
+$$
+
+**Quartic**: This allows for more complex wave-like patterns with multiple inflection points.
+
+$$
+y = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4 x^4
+$$
+
+Including these terms helps to identify whether the effect of x increases, decreases, or reverses direction depending on its value. This is especially helpful when a visual inspection of a scatterplot or theoretical expectation suggests a non-linear pattern.
+
+```{r, echo=FALSE, warning=FALSE}
+x <- seq(-3, 3, 0.1)
+
+# Create base data frame
+df <- data.frame(
+  x = x,
+  linear = 1 + 30 * x,
+  quadratic = -50 + x + 20*x^2,
+  cubic = 1 + x + x^2 + 4*x^3,
+  quartic = -50 + x + x^2 + x^3 + 2*x^4
+)
+
+# Reshape for plotting
+df_long <- df %>%
+  pivot_longer(cols = -x, names_to = "model", values_to = "y")  %>%
+  mutate(model = factor(model, levels = c("linear", "quadratic", "cubic", "quartic")))
+
+# Simulate noisy observations
+set.seed(123)
+df_long_noisy <- df_long %>%
+  mutate(y_obs = y + rnorm(n(), mean = 0, sd = 20))  
+
+# Plot
+ggplot(df_long_noisy, aes(x = x)) +
+  geom_point(aes(y = y_obs), alpha = 0.4, size = 0.8) +
+  geom_line(aes(y = y), size = 0.5, color = "black") +
+  facet_wrap(~ model) +
+  labs(title = "",
+       x = "\nX",
+       y = "Predicted Y \n") +
+  theme_minimal()
+
+```
+
+### Logged value
+
+Logarithmic transformation is a common technique used in regression analysis to handle variables with highly skewed distributions or multiplicative effects. Taking the natural log of a variable compresses the scale, reduces the influence of extreme values, and often helps linearize relationships with the dependent variable. This is especially useful when dealing with economic data such as GDP per capita, which tends to be right-skewed.
+
+#### Practical application: Logged GDP per capita
+
+```{r}
+vdem <- read.csv("vdem.csv") %>% drop_na()
+```
+
+Let’s first examine the distribution of the original GDP per capita variable:
+
+```{r, message=FALSE}
+ggplot(vdem, aes(x = e_gdppc)) +
+  geom_histogram(fill = "#275D8E") +
+  labs(title = "", x = "\nGDP per capita",  y = "Frequency") +
+  theme_minimal()
+```
+
+As shown above, the distribution is highly right-skewed. Most countries fall into the lower range of GDP per capita, while a small number have extremely high values. This long tail can distort statistical estimates and make it difficult to interpret regression coefficients.
+
+To address this, we apply a log transformation:
+
+```{r}
+vdem <- vdem %>%
+  mutate(loggedgdp = log(e_gdppc + 0.0001))
+
+ggplot(vdem, aes(x = loggedgdp)) +
+  geom_histogram(fill = "#275D8E") +
+  labs(title = "", x = "\nGDP per capita",  y = "Frequency") +
+  theme_minimal()
+```
+
+After transformation, the distribution of GDP per capita becomes more symmetric and normalized. The log scale compresses the large values while spreading out the lower ones, making the variable more suitable for regression modeling.
+
+This transformation is especially useful when comparing countries with vastly different income levels or when analyzing growth patterns over time.
+
+### Time dependence
+
+When working with **panel data**—data that track multiple units (such as countries) over multiple time periods—an important concern is **temporal dependence**. This refers to the fact that observations for the same unit across time are often not independent. In other words, what happens in one year may influence what happens in subsequent years. For instance, a country that experiences a civil war in one year is more likely to face conflict again the next year. Similarly, a country with a high level of political repression in one year may continue to exhibit high repression in the following year. Ignoring this temporal structure can lead to biased estimates and incorrect inferences. Incorporating lagged variables into a regression model is one common and effective strategy to account for this type of dependence.
+
+One common way to address this issue is by including **lagged values** of key independent variables. A lagged variable is simply a variable from the previous time period. It captures the historical influence of a phenomenon and allows us to model dynamic processes more realistically. It captures inertia or persistence: Many political or economic outcomes are path-dependent. A variable’s past value can be one of the best predictors of its current value.
+
+#### Practical application: Lagged Civil War
+
+Let’s create a lagged variable for civil war using the e_civil_war variable, grouped by country:
+
+```{r}
+vdem <- vdem %>%
+  group_by(country_id) %>%
+  mutate(laggedcw = dplyr::lag(e_civil_war, n = 1))
+```
+
+In this code:
+
+`group_by(country_id)` ensures that the lag is calculated within each country, preserving the panel structure.
+
+`dplyr::lag()` shifts the e_civil_war values by one year for each country.
+
+The resulting laggedcw variable represents whether a country experienced civil war in the previous year.
+
+Lagged variables are especially useful in conflict studies, where the likelihood of recurring conflict is high. Including lagged conflict status helps account for temporal autocorrelation, improves model fit, and provides a more accurate estimation of other covariates' effects.
+
+### Clustered Errors and Fixed Effects
+
+#### Clustered Errors
+
+In regression analysis, one of the standard assumptions is that **the error terms (residuals) are independent and identically distributed (i.i.d.)**. However, in many real-world datasets—especially in panel data or multi-level data structures—this assumption is violated. Specifically, observations within the same group or cluster (such as the same country, region, or individual over time) tend to be correlated with each other.
+
+For example, measurements taken from the same country across multiple years may share unobserved characteristics—such as political institutions, culture, or geography—that influence outcomes in a similar way. This leads to intra-cluster correlation, where the error terms within a cluster are not independent.
+
+If we ignore this correlation and use conventional standard errors, we may underestimate the true standard errors, which can lead to inflated t-statistics, overstated statistical significance, and ultimately misleading conclusions.
+
+To address this, we use **clustered standard errors**, which adjust the variance-covariance matrix of the estimated coefficients to allow for arbitrary correlation within each cluster while still assuming independence across clusters. This approach produces more robust and realistic standard errors in the presence of grouped data.
+
+#### Fixed effects
+
+In panel data analysis, one of the major challenges is **unobserved heterogeneity**—that is, characteristics of units (e.g., countries, individuals, firms) that are not included in the model but may still influence the outcome variable. If these omitted factors are time-invariant and correlated with the independent variables, they can bias the coefficient estimates due to omitted variable bias.
+
+**Fixed effects** models offer a solution to this problem. The core idea is to control for all unit-specific characteristics that do not change over time, such as geography, culture, institutional history, or long-standing governance structures in the case of countries.
+
+This is achieved by including dummy variables for each unit in the dataset (e.g., for each country). These dummy variables absorb the effect of all stable, unobserved traits, so the model estimates the effect of the independent variables within units over time, rather than between them.
+
+#### Practical Example
+
+```{r}
+# Estimate model without the cluster argument
+model1 <- lm(v2x_polyarchy ~ v2elembaut + I(v2elembaut^2) + 
+               loggedgdp + laggedcw + factor(country_id), data = vdem)
+```
+
+The model estimates the determinants of Electoral Democracy (measured by v2x_polyarchy) using several explanatory variables:
+
+`v2elembaut` (EMB Autonomy): This variable measures the level of autonomy of the electoral management body (EMB).
+
+`I(v2elembaut^2)` (EMB Autonomy Squared): This squared term allows us to model a non-linear relationship between EMB autonomy and electoral democracy. It tests whether the effect of EMB autonomy on democracy changes depending on its level.
+
+`loggedgdp` (Log of GDP per Capita): This is a log-transformed measure of a country’s economic development.
+
+`laggedcw` (Lagged Civil War): This is a lagged indicator of whether a country experienced civil war in the previous year.
+
+`factor(country_id)` (Country Fixed Effects): This creates a dummy variable for each country, controlling for time-invariant characteristics such as geography or institutional traditions.
+
+After estimating the regression model, we calculate clustered standard errors to address potential violations of the assumption of independent and identically distributed (i.i.d.) errors. In panel data, observations within the same unit (e.g., country) are likely to be correlated across time. For instance, a country's political institutions or economic conditions tend to evolve gradually rather than change abruptly from year to year. As a result, residuals within a country may be correlated, violating standard OLS assumptions.
+
+To account for this, we cluster standard errors by country using the `vcovCL()` function from the `sandwich` package:
+
+```{r}
+library(sandwich)
+# Calculate clustered standard errors
+clustered_se <- vcovCL(model1, cluster = ~country_id)
+
+# Extract clustered standard errors
+se_clustered <- sqrt(diag(clustered_se))
+```
+
+
+
+```{r, warning=FALSE}
+stargazer(model1, type = "text",
+          se = list(se_clustered),
+          covariate.labels = c("EMB Autonomy", 
+                               "EMB Autonomy²", 
+                               "Log(GDP per capita)", 
+                               "Lagged Civil War"),
+          omit = "country_id", omit.labels = "Country FE")
+```
+
+The regression results show that EMB autonomy has a statistically significant and positive effect on the Electoral Democracy Index. A one-unit increase in EMB autonomy is associated with a 0.105 point rise in electoral democracy, holding other variables constant. The positive and significant squared term (0.009) indicates a non-linear relationship: the marginal effect of EMB autonomy strengthens as its level increases. In practical terms, gains in democracy are modest at low levels of EMB autonomy but become more substantial as EMB independence deepens. This suggests that countries with already moderate EMB autonomy benefit more from further reforms than those starting from very low levels.
+
+```{r, fig.align='center'}
+library(ggeffects)
+eff1 <- ggpredict(model1, terms = "v2elembaut")
+
+plot(eff1, colors = "blue")+
+  labs(title = NULL,
+       x = "\nEMB autonomy",
+       y = "EDI\n") +
+  theme_minimal()
+```
+
+The model also controls for economic development and past civil conflict. Log GDP per capita is positively and significantly associated with electoral democracy, while the lagged civil war variable has a negative but statistically insignificant effect. Country fixed effects are included to account for unobserved national characteristics, and standard errors are clustered by country to ensure robust inference.
+
+## Part 2: Model Selection
+
+Once you've estimated a regression model, the next step is to evaluate how well it performs. But how do you know if your model is actually a good model?
+
+A model that is too simple may fail to capture important patterns in the data—it underfits. On the other hand, a model that is too complex may fit the training data too closely, capturing random noise instead of meaningful signal—it overfits, and often performs poorly when applied to new data.
+
+Effective model selection involves striking a balance between goodness-of-fit and model complexity. A good model should explain the variation in the dependent variable using meaningful predictors while remaining generalizable to other samples or future observations.
+
+In this part, we will explore four common strategies for assessing model quality:
+
+1. P-values: Evaluate the statistical significance of individual predictors.
+
+2. R-squared: Measure the proportion of variance explained by the model.
+
+3. AIC & BIC: Use information criteria to penalize overly complex models.
+
+4. Predictive Accuracy: Assess how well the model performs in out-of-sample prediction.
+
+Each strategy offers a different perspective, and together, they provide a comprehensive toolkit for evaluating and comparing regression models.
+
+### P-value
+
+One common approach to model selection is to use p-values to determine which variables to keep in the model. The idea is to retain only predictors that show statistically significant relationships with the dependent variable. This is often done using step-by-step selection procedures based on hypothesis testing.
+
+#### Backwards Elimination
+
+- Start with a model that includes all potential predictors.
+
+- Identify the predictor with the largest p-value above a chosen significance level (e.g., α = 0.05).
+
+- Remove that predictor and refit the model.
+
+- Repeat until all remaining predictors have p-values below α.
+
+#### Forward Selection
+
+- Start with an empty model (no predictors).
+
+- Add the predictor with the smallest p-value below α.
+
+- Refit the model and continue adding predictors one at a time, based on p-value thresholds.
+
+- Stop when no remaining variable meets the significance level.
+
+#### Stepwise Selection
+
+- A hybrid method that combines forward selection and backward elimination.
+
+- After each step of adding or removing a variable, the model checks whether any previously added variable has become non-significant and should now be removed.
+
+#### Limitations of p-value-based selection
+
+While widely used, p-value-based model selection is not ideal for several reasons:
+
+- Overreliance on arbitrary thresholds: The standard $\alpha = 0.05$ cutoff is arbitrary, and small changes in data can shift a p-value just above or below this line, drastically affecting model selection.
+
+- Ignores model performance: P-values test statistical significance, not how well the model fits or predicts. A model full of “significant” predictors may still perform poorly in practice.
+
+- Fails with multicollinearity: When predictors are highly correlated, their p-values can be unstable and misleading.
+
+### R-squared
+
+One of the most commonly reported metrics in linear regression is R-squared ($R^2$), which measures the proportion of the total variance in the dependent variable that is explained by the model.
+
+$$
+R^2 = \frac{RegSS}{TSS} = 1 - \frac{RSS}{TSS}
+$$
+
+- $R^2$ values range between 0 and 1.
+
+- A value close to 1 indicates that the model explains most of the variability in the outcome variable: for example, $R^2 = 0.70$ means 70% of the variance in the outcome is explained by the independent variables.
+
+- However, a high $R^2$ alone does not imply a good model, especially if it's inflated by including too many variables.
+
+To account for the number of predictors $k$ we use the **adjusted $R^2$**:
+
+$$
+R^2_{adj} = 1 - \frac{RSS/(n-k-1)}{TSS/(n-1)}
+$$
+
+- It penalizes overfitting and allows more fair comparison between models with different numbers of predictors.
+
+- If you add a variable that doesn’t help the model, adjusted $R^2$ may decrease — giving you a warning sign.
+
+### AIC & BIC
+
+When comparing multiple statistical models, especially those estimated via maximum likelihood, we need a way to determine which model fits the data best without overfitting. Two widely used model selection criteria are the Akaike Information Criterion (AIC) and the Bayesian Information Criterion (BIC).
+
+Suppose the dependent variable (DV) values are independent and identically distributed (i.i.d.). Then, the likelihood of observing the entire sample is the product of the individual densities. We typically use the log-likelihood for ease of computation
+
+$$
+AIC = -2 \log L + 2k \\
+BIC = -2 \log L + \log(n)\cdot k 
+$$
+Where:
+
+- logL: log-likelihood of the model (how well the model fits the data)
+
+- k: number of parameters (including the intercept)
+
+- n: number of observations
+
+#### How They Work
+
+Both AIC and BIC penalize model complexity, but in different ways:
+
+- AIC applies a constant penalty of 2 per parameter.
+
+- BIC applies a stricter penalty that increases with the sample size: log(n)⋅k. So with large datasets, BIC favors simpler models more heavily than AIC.
+
+Both are *relative measures*—**smaller values are better**, but only when comparing models fit to the same data.
+
+### Predictive Accuracy
+
+If our main goal is **prediction**, rather than explanation or inference, then the best model is the one that performs well on new, unseen data, not necessarily the one that fits the training data perfectly.
+
+In this case, we evaluate models based on their **predictive accuracy**—how well they generalize beyond the original data.
+
+#### Key Concept: Out-of-Sample Prediction
+
+When we fit a model to a dataset, we minimize the **sum of squared errors (SSE)** on that data:
+
+$$
+\text{SSE}_{\text{in-sample}} = \sum_{i=1}^n (y_i - \hat{y}_i)^2
+$$
+
+However, this in-sample SSE may underestimate the true error due to **overfitting**. What we truly care about is the **out-of-sample prediction error**:
+
+$$
+\text{SSE}_{\text{out-of-sample}} = \sum_{i=1}^m (y_i^{\text{new}} - \hat{y}_i^{\text{model}})^2
+$$
+
+To estimate out-of-sample error with available data, we use **cross-validation**:
+
+**Leave-One-Out**: fit model n times, omitting $i^{th}$ observation and getting predicted value, mean squared prediction error
+
+$$
+\text{CV}_j = \frac{\sum_{i=1}^n (\hat{y}_{-1}^{(j)} - Y_i)^2}{n}
+$$
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we expanded our understanding of regression modeling by focusing on two major areas: improving model specification and selecting the most appropriate model for analysis and prediction.
+
+In Part 1, we explored how variables relate to one another in ways that are often more complex than a simple linear relationship. We introduced key modeling tools to capture this complexity:
+
+- Power transformations like squared or cubic terms allow us to detect and model non-linear relationships between predictors and outcomes.
+
+- Log transformations help deal with skewed distributions and multiplicative effects, making variables like GDP per capita more interpretable and statistically manageable.
+
+- Lagged variables are essential when modeling panel data, as they help account for time dependence and the lingering effects of past events.
+
+- Clustered standard errors correct for within-unit correlation over time, providing more accurate measures of statistical uncertainty.
+
+- Fixed effects allow us to control for unobserved, time-invariant differences between units (such as countries), isolating the effects of interest.
+
+In Part 2, we turned to the question of how to assess and compare models. We discussed several widely used tools and techniques:
+
+- P-values can guide variable selection, though they have important limitations and should be used cautiously.
+
+- R-squared and adjusted R-squared help measure model fit, with the adjusted version providing a better check against overfitting.
+
+- AIC and BIC offer principled ways to compare models, balancing fit and complexity. AIC favors models that best approximate the data-generating process, while BIC favors simpler models that are more likely to be true.
+
+- Predictive accuracy—especially assessed via cross-validation—is crucial when the goal is to make accurate forecasts rather than explain underlying mechanisms.
+
+In the next module, we will learn about Interactions and Marginal Effects, which is essential for understanding how the relationship between one independent variable and the outcome may change depending on the level of another variable. This allows us to move beyond simple additive models and explore more nuanced, conditional relationships in the data.
+
+Before moving on, don’t forget to complete the quiz and problem set to reinforce what you’ve learned in this module.

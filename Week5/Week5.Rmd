@@ -1,0 +1,195 @@
+---
+title: "Randomized Experiments and Obervational Studies"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+```
+
+
+In the previous module, we learned about the importance of randomization and how it can be used in research to make causal inferences. In this module, we will explore randomized experiments in more depth and contrast them with observational studies.
+
+We begin by introducing the concept and logic of randomized experiments, walking through their structure and key components. Then, using a practical example, we will implement a randomized experiment in R. In Part 2, we will turn to observational studies and explain how they differ from randomized experiments—highlighting their strengths and limitations.
+
+## Part 1: What is the Randomized Experiment?
+
+A randomized experiment, also known as a randomized controlled trial (RCT), is a systematic method for studying the causal effect of a treatment on an outcome. In such studies, participants are assigned to different groups—typically a treatment group and a control group—using a random mechanism such as a coin flip or a random number generator. This random assignment ensures that, on average, the treatment and control groups are similar in all respects except for the treatment itself. As a result, any observed differences in outcomes between the groups can be attributed to the treatment, rather than to pre-existing differences among individuals. In this part, we will learn several core concepts related to randomized experiments.
+
+### Randomized treatment assignment
+
+In a randomized experiment, individuals are assigned to treatment or control groups purely by chance. This means that each person has an equal probability of being assigned to either group. As discussed in the previous module, this randomization process helps ensure that both observable and unobservable characteristics are, on average, balanced across the two groups. This minimizes confounding and enables us to draw valid causal inferences.
+
+While individual-level characteristics may still differ between some participants, randomization creates groups that are similar “as groups,” even if individual patients differ, ensuring that **the treatment and control groups are statistically equivalent as groups at baseline.**
+
+Let’s load our dataset for the upcoming example:
+
+```{r, warning=FALSE}
+# Import the dataset
+population <- read.csv("population.csv")
+
+# View the first few rows
+head(population[c("Income_t1", "Income_t2", "assignment", "SEX", "EDUCATION", "ETHNIC.CLASS")], 5) %>%
+  kable() %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+```
+
+As introduced in Module 4, this dataset includes key demographic and economic variables such as income, sex, age, race, and household size. In our example, we simulate a financial literacy workshop as the intervention. We aim to evaluate its impact by comparing income levels before and after the intervention, using randomized assignment to the treatment and control groups.  The treatment assignment was made independently of all variables, except for Income_t2, which reflects post-intervention income and is designed to capture the treatment’s potential effects.
+
+### Fisher's Null Hypothesis of No Effect
+
+Before conducting any statistical test, we must first formulate a **null hypothesis**. This is a foundational principle in hypothesis testing: it provides a formal claim to test against and allows us to assess whether the observed data provide sufficient evidence to reject that claim.
+
+Fisher’s null hypothesis ($H_0$) posits that the treatment has no effect on any participant, meaning the outcome for each individual would be the same regardless of whether they received the treatment or control. It assumes that for each individual $i$, the response under treatment ($r_{Ti}$) equals the response under control ($r_{Ci}$), so the treatment effect $\delta_i = r_{Ti} - r_{Ci} = 0$ for all $i$. The hypothesis is tested by calculating the probability (P-value) of observing a test statistic (e.g., $T$, the number of deaths in the treatment group) as extreme or more extreme than the observed value, assuming $H_0$ is true.
+
+In our financial literacy example, the null hypothesis is:
+
+**The financial literacy workshop has no effect on any individual's income level.**
+
+This implies that each person would have earned the same income regardless of whether they were in the treatment or control group.
+
+To test this, we calculate a **test statistic** and determine how likely such a difference would be if the null hypothesis were true. This likelihood is expressed as a **P-value**, which we will explore in the next section.
+
+### P-Value
+
+P-value is the probability, under the null hypothesis, of observing a test statistic as extreme or more extreme than the one observed. A small P-value (e.g., ≤ 0.05) suggests the observed data are unlikely under $H_0$, providing evidence against the null hypothesis.
+
+A P-value ≤ 0.05 is often considered “statistically significant,” but this is an arbitrary threshold. 
+
+Let's compute the actual test statistic for our dataset population to evaluate the effect of the intervention. 
+
+In other words, we assume that income is independent of treatment assignment. Under this assumption, any difference in income between the treatment and control groups is due to random chance.
+
+To simulate this null universe, we shuffle the treatment labels (assignment) while keeping income values fixed, effectively breaking any relationship between treatment and outcome. We repeat this process 1,000 times using `generate()` function in `infer` package to build a distribution of possible differences under the null.
+
+```{r}
+library(infer)
+set.seed(123)
+
+null <- population %>%
+  mutate(assignment = factor(assignment)) %>% 
+  specify(Income_t2 ~ assignment) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute")
+```
+
+We then compute the difference in means between the treatment and control groups for each of the 1,000 shuffled datasets. This gives us a sampling distribution of the test statistic assuming the null hypothesis is true.
+
+```{r}
+sumstat <- null %>%
+  calculate(stat = "diff in means", order = c("0", "1"))
+
+head(sumstat, 10) %>%
+  kable() %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+```
+
+Next, we calculate the observed difference in means between the treatment and control groups using the original (unshuffled) dataset. 
+
+```{r, message=FALSE}
+obs_diff_mean <- population %>%
+  mutate(assignment = factor(assignment)) %>% 
+  specify(Income_t2 ~ assignment) %>%
+  calculate(stat = "diff in means", order = c("1", "0"))
+
+obs_diff_mean
+```
+
+This value represents our actual test statistic. In this case, the estimated Average Treatment Effect (ATE)—the difference in post-treatment income (Income_t2) between the treatment and control groups—is 1,053.232. 
+
+We can now visualize the distribution of simulated test statistics under the null hypothesis using the `visualize()` function and use the `shade_p_value()` function.
+
+```{r}
+visualize(sumstat, bins = 10) +
+  shade_p_value(obs_stat = obs_diff_mean, direction = "right")
+```
+
+The histogram displays the distribution of simulated differences in means generated by repeatedly shuffling the treatment labels under the assumption that the treatment has no effect. In this hypothetical universe, the differences in means are centered around 0, indicating no systematic difference between the treatment and control groups.
+
+The red line marks the observed (actual) difference in means from our original data—1,053.232. The shaded area to the right of the red line represents the proportion of shuffled datasets where the simulated difference in means was greater than or equal to our actual observed difference.
+
+This proportion is the p-value. It tells us how likely it is to observe a treatment effect as large as (or larger than) 1,053.232 purely by chance, assuming the treatment actually has no effect. In other words, a p-value quantifies the strength of evidence against the null hypothesis:
+
+Finally, we calculate the p-value, which represents the proportion of permutations that resulted in a difference in means greater than or equal to the observed value.
+
+```{r}
+sumstat %>%
+  get_p_value(obs_stat = obs_diff_mean, direction = "right") %>%
+  mutate(p_value = round(p_value, 5))
+```
+
+In our case, the p-value is 0.036, which is below the 0.05 threshold.
+This suggests that the observed difference in income is unlikely to have occurred by chance under the null hypothesis, and we can reject $H_0$ at the 5% level.
+
+## Part 2: Randomized Experiment vs. Observational Study
+
+Now that we understand what a randomized experiment is, we turn our attention to observational studies. In this section, we will define observational studies, highlight how they differ from randomized experiments, and examine some of their key limitations.
+
+### What is an Observational Study?
+
+An observational study is an empirical investigation designed to examine cause-and-effect relationships without the ability to assign treatments randomly. In contrast to randomized experiments, the researcher does not control who receives the treatment. Instead, they observe individuals or units in their natural settings, where treatments are determined by factors outside the researcher's control.
+
+For example, consider a study investigating the effects of civil war on EMB capacity. A researcher cannot ethically or practically assign countries to experience civil war. Instead, they must analyze observational data on countries that have already experienced war and compare them with those that have not. In this case, the treatment (civil war) is not randomly assigned, making it more difficult to isolate its causal impact.
+
+### Difference between Randomized Experiment and Obervational Study
+
+**Treatment Assignment:**
+
+- Randomized Experiment: The researcher randomly assigns units to treatment or control groups. This process ensures that both groups are statistically equivalent at baseline, balancing both observed and unobserved variables. As a result, differences in outcomes can be confidently attributed to the treatment.
+
+- Observational Study: Treatment assignment is not under the researcher's control. It may be influenced by personal choice, policy decisions, or contextual factors. This non-random process can result in systematic differences between groups, introducing confounding variables that bias the estimated treatment effect.
+
+**Control Over Variables:**
+
+- Randomized Experiment: The researcher has full control over the design and implementation of the study, including how treatment is assigned. This allows for careful planning to minimize bias and improve internal validity.
+
+- Observational Study: The researcher observes naturally occurring data without control over how treatment is assigned. This limits the ability to ensure comparability between groups and makes it harder to rule out alternative explanations for observed differences.
+
+**Causal Inference:**
+
+Randomized Experiment: Because randomization neutralizes confounding in expectation, differences in outcomes between groups can be attributed to the treatment. This makes causal inference more straightforward and robust.
+
+Observational Study: Since treatment is not assigned randomly, causal inference requires strong assumptions and statistical adjustments (e.g., matching, regression, instrumental variables). Even with these methods, unobserved confounders may still bias results, limiting the strength of causal claims.
+
+## Limitations of Observational Studies
+
+**Confounding**: Observational studies are prone to both observed and unobserved confounding. Researchers may not have access to all relevant covariates, and unmeasured factors could bias estimates.
+
+**Selection Bias**: Individuals who receive the treatment may systematically differ from those who do not, introducing bias if these differences also affect the outcome.
+
+**Reverse Causality**: It may be unclear whether the treatment causes the outcome or vice versa. For instance, does political instability cause economic decline, or does economic decline increase the likelihood of instability?
+
+Despite these limitations, observational studies are often the only feasible option in many areas of social science, especially when ethical or practical constraints prevent experimentation. For this reason, developing strategies to improve the validity of observational research is an essential skill for researchers.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we explored two major approaches to causal inference: randomized experiments and observational studies.
+
+In Part 1, we learned the core logic of randomized controlled trials (RCTs)—how random assignment helps us isolate the causal impact of a treatment by ensuring that both observed and unobserved confounders are balanced across groups. We used a simulated dataset to walk through the key steps of conducting a randomized experiment in R, including stating the null hypothesis, simulating the null distribution, computing the observed test statistic, and interpreting the resulting p-value.
+
+In Part 2, we turned to observational studies, which are common in the social sciences when randomization is infeasible or unethical. We discussed how treatment assignment in observational research is non-random and often subject to confounding, making causal inference more difficult. We also reviewed key differences between observational and experimental designs, emphasizing the importance of identifying and addressing limitations such as selection bias and unmeasured confounders.
+
+Ultimately, both experimental and observational methods are valuable in social science research. Randomized experiments offer stronger internal validity, while observational studies allow us to explore questions in real-world settings that cannot be manipulated.
+
+In the next steps, you will have the opportunity to reinforce these concepts through a quiz and Problem Set 3. Be sure to complete both before moving on to the next module!

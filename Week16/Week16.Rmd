@@ -1,0 +1,134 @@
+---
+title: "Foreshadowing More Advanced Methods"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+rm(list = ls())   
+library(ggeffects)
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+library(tidyverse)
+library(haven)
+library(stargazer)
+```
+
+Congratulations on making it to the final module of the course! You’ve worked your way through a challenging and rewarding journey, and reaching this point is no small achievement. Welcome to the last stage of our learning path together.
+
+Over the past weeks, we have traveled a full arc of topics: starting from foundational concepts in quantitative political analysis, moving through the principles of causal inference, building up regression theory, expanding into advanced modeling techniques, exploring inference and prediction, and finally sharpening our skills with diagnostics. Each step has been designed to deepen your understanding and strengthen your ability to conduct rigorous and meaningful research.
+
+In this module, we will recap the key ideas and skills you’ve developed throughout the course, connecting them into a coherent framework you can carry forward. We will also take a brief look at more advanced methods that you may encounter in future study or research. This way, you’ll leave not only with a clear sense of what you’ve accomplished but also with a vision for where you can go next.
+
+## What We Have Learned in This Course
+
+### Research Foundations (Weeks 1–3)
+
+The course began in Weeks 1 to 3 by establishing the research foundations necessary for advanced quantitative political analysis. We introduced the logic and scope of quantitative research in political science, emphasizing how theory guides the formulation of research questions and the selection of appropriate methods. Students revisited descriptive and bivariate statistics, not simply as mechanical tools, but as the essential first step toward understanding relationships in data. This included a discussion of what a distribution is—the way in which values of a variable are spread or arranged across possible outcomes—and how understanding a variable’s distribution helps in summarizing, visualizing, and modeling it appropriately.
+
+We also examined the important distinction between correlation and causation. Correlation describes the degree to which two variables move together, but it does not imply that changes in one variable cause changes in the other. Causation, on the other hand, requires a clear theoretical mechanism and evidence that changes in the independent variable bring about changes in the dependent variable.
+
+We then turned to the fundamentals of causal inference, exploring the counterfactual framework—the idea that the causal effect of a treatment or intervention is defined by comparing the outcome we actually observe to the outcome we would have observed had the treatment not occurred. Since we can never observe both outcomes for the same unit at the same time, causal inference requires careful design and assumptions to approximate this counterfactual comparison. In this context, we discussed the key assumptions underpinning causal claims and the central role of theory in linking empirical evidence to broader explanations.
+
+### Research Design & Data Strategies (Weeks 4–5)
+
+In Weeks 4 and 5, the course moved from the conceptual foundations of causal inference to the practical question of how to design research that can credibly estimate causal effects. We began with randomization, exploring how the random assignment of treatments ensures, on average, that treatment and control groups are equivalent in both observed and unobserved characteristics. This property makes randomization a method for satisfying the conditional independence assumption, thereby strengthening causal claims.
+
+We then broadened the discussion to include observational studies, which are far more common in political science. While observational studies lack the built-in protection of randomization, researchers can still approximate experimental conditions by carefully controlling for confounding variables and applying methods such as matching or stratification. These approaches aim to reduce bias and make the treatment and comparison groups more comparable. Throughout this section, we examined threats to internal validity, including omitted variable bias, measurement error, and selection bias, as well as threats to external validity, which concern the generalizability of findings beyond the study setting.
+
+### Modeling with OLS (Weeks 6–8)
+
+Weeks 6 to 8 introduced the theory and application of Ordinary Least Squares (OLS) regression, a foundational method in quantitative analysis. We began with the formal assumptions that underpin OLS: linearity of relationships between predictors and the dependent variable, independence of errors, homoskedasticity (constant variance of errors), and normality of residuals for valid inference.
+
+From there, we moved into the estimation and interpretation of coefficients, discussing how OLS estimates represent the average change in the dependent variable for a one-unit change in the predictor, holding other variables constant.
+
+### Generalized Linear Models & MLE (Weeks 9–10)
+
+In Weeks 9 and 10, the course expanded beyond OLS to explore Generalized Linear Models (GLMs) and the Maximum Likelihood Estimation (MLE) framework. We began by discussing the limitations of OLS—particularly its assumption that the dependent variable is continuous, unbounded, and normally distributed—which makes it unsuitable for binary, categorical, or count outcomes. GLMs address these limitations by allowing the dependent variable to follow different probability distributions from the exponential family and by linking the linear predictor to the expected value of the outcome through a link function.
+
+We then introduced Maximum Likelihood Estimation as a framework for estimating parameters across a wide variety of models. Students learned how MLE identifies the parameter values most likely to have produced the observed data, given the assumed distribution. We compared MLE to the OLS estimation approach, highlighting its flexibility and generality, and demonstrated how it applies to logistic regression.
+
+### Expanding Analysis (Weeks 11–12)
+
+Weeks 11 and 12 moved beyond basic model specification to focus on refining analyses and uncovering more complex relationships in data. Week 11 began with a deeper look at variable types and the nature of their relationships—linear, nonlinear, and dynamic. We explored when and how to apply power transformations to address skewness or improve model fit, how to incorporate lagged variables to capture time dependence, and how to account for clustered errors and fixed effects to control for unobserved heterogeneity across groups or units. 
+
+Week 12 built directly on this foundation by turning to interaction terms and marginal effects. We began with dummy variables, showing how they allow categorical predictors to be incorporated into regression models, and then introduced interaction terms as a way to capture conditional relationships, where the effect of one variable depends on the value of another. We also used marginal effects plots to visualize how predicted outcomes change across the range of interacting variables.
+
+### Bootstrapping (Weeks 13–14)
+
+In Weeks 13 and 14, we introduced bootstrapping as a way to improve the robustness of estimates. Week 13 introduced non-parametric bootstrapping, a resampling method that allows us to estimate standard errors, confidence intervals, and sampling distributions without making strong assumptions about the underlying data-generating process. The idea is straightforward: repeatedly resample observations from the dataset with replacement, compute the statistic of interest for each resample, and use the resulting empirical distribution to assess uncertainty. This method is especially useful when theoretical formulas for standard errors are unreliable or when model assumptions are in doubt.
+
+Week 14 shifted to parametric bootstrapping, which combines the logic of resampling with model-based simulation. Instead of drawing resamples directly from the observed data, parametric bootstrapping begins with an assumed statistical model, uses the estimated parameters to generate simulated datasets, and then re-estimates the model on each simulated dataset.
+
+### Diagnostics (Week 15)
+
+We began with diagnosing the core assumptions of linear regression, using both visual and statistical tools. Residual analysis was central to this process: plotting residuals against fitted values to check for patterns that might indicate violations of linearity or constant variance, and examining histograms or Q–Q plots of residuals to assess normality. We discussed why these assumptions matter for inference and prediction, and how violations can bias estimates or invalidate standard errors.
+
+We also addressed multicollinearity, which occurs when predictors are highly correlated with one another. Students learned to calculate the Variance Inflation Factor (VIF) to detect multicollinearity and considered strategies for addressing it, such as removing redundant variables, combining predictors, or applying regularization methods.
+
+Beyond assumption checks, we covered model comparison as part of the diagnostic process. This included evaluating competing specifications using Adjusted R-squared for explanatory power, AIC and BIC for balancing fit and complexity, and cross-validation to estimate predictive performance.
+
+## More Advanced Methods
+
+As we move forward beyond the scope of this course, there are many advanced statistical methods that can be applied to a wide range of research questions. Choosing the right method depends on the nature of your dependent variable, the structure of your data, and the theoretical relationships you wish to examine. Below is a brief introduction to several techniques that extend the ideas we have already explored.
+
+### Generalized Linear Models
+
+In this course, our application of generalized linear models focused primarily on binary dependent variables using logistic regression. However, GLMs are far more flexible, and can be adapted for ordered, categorical, or count outcomes. These extensions allow researchers to model more complex types of dependent variables in a way that better matches the underlying data-generating process.
+
+#### 1. Ordered logistic regression
+
+When the dependent variable is ordinal—that is, it reflects categories with a natural order but without a consistent numeric spacing between them—ordered logistic regression is an appropriate choice. Examples include survey responses measured on levels of political freedom categorized as “low,” “medium,” and “high.” This method models the cumulative probability of being at or below a certain category, respecting the ordered nature of the data.
+
+#### 2. Multinomial logistic regression
+
+If the dependent variable is nominal categorical, meaning it has two or more unordered categories, multinomial logistic regression can be used. For instance, when studying voter choice among multiple political parties, there is no inherent order between categories. This model estimates the probability of each possible outcome relative to a baseline category, allowing researchers to compare the effects of predictors across all possible outcomes.
+
+#### 3. Poisson Regression
+
+When the dependent variable represents a count—such as the number of protests in a year—Poisson regression is often the starting point. This model assumes that counts follow a Poisson distribution and that the mean and variance are equal. While this assumption can be restrictive, it provides a useful baseline for modeling event counts and for later extensions to more flexible models.
+
+### Mixture Models
+
+Sometimes the data-generating process is more complex than a single distribution can capture, especially when the data include an excess of zeros or exhibit overdispersion. Mixture models, which combine two or more distributions, are designed to handle such situations.
+
+#### 1. Zero-inflated Poisson
+
+The Zero-Inflated Poisson (ZIP) model is useful when there are more zeros in the data than a standard Poisson model would predict—a situation often called zero inflation. For example, many cities might report zero protests in a year. The ZIP model handles this by combining two parts:
+
+- A binary model that predicts whether an observation is in the “always zero” group (structural zeros).
+
+- A standard Poisson count model for the remaining observations, where events can occur and counts can be positive integers.
+
+By modeling these two processes separately, the ZIP model can better account for the excess zeros and produce more accurate estimates of event rates.
+
+#### 2. Negative Binomial Regression
+
+When working with count data, the standard Poisson regression assumes that the mean and variance of the counts are equal. However, in many real-world datasets, the variance is much larger than the mean—a condition known as overdispersion. Overdispersion can occur for a variety of reasons, such as unobserved heterogeneity among units, clustering of events, or variability in exposure time. For example, imagine you are studying the number of protests that occur in different cities over the course of a year. Across all cities, the average number of protests might be 3, but the spread of the data is much wider than the Poisson model would expect. Some cities might consistently report between 2 and 4 protests, while others vary from 0 to 20 in a single year.
+
+Negative Binomial regression addresses this problem by introducing an extra parameter that models the additional variability. It assumes that the Poisson mean itself is not fixed but follows a Gamma distribution, which allows the variance to be greater than the mean. This flexibility enables the model to capture the spread of the data more accurately, especially when counts are unevenly distributed across observations.
+
+## Wrapping up...
+
+You’ve arrived at the final stop in our journey through this course. Over the past weeks, you have progressed from laying the groundwork in research design and statistical reasoning to mastering essential modeling techniques. This is a significant achievement, and the skills you have gained will serve as an important milestone—one that will support both more advanced study and your own independent research. Congratulations on reaching this point. I hope you leave with a strong sense of confidence in what you have accomplished. Well done—you’ve truly earned it.
+
+

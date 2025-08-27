@@ -1,0 +1,201 @@
+---
+title: "Inference and Prediction I: Non-Parametic Bootstrapping"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+rm(list = ls())   
+library(ggeffects)
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+library(tidyverse)
+library(haven)
+library(stargazer)
+```
+
+
+In the previous module, we explored how to model interactions between variables using dummy variables, interaction terms, and marginal effect plots. We learned how to interpret regression models when the effect of one variable depends on the value of another, and how to visualize these relationships to gain deeper insights.
+
+In this module, we focus on inference and prediction using non-parametric bootstrapping. It allows us to estimate uncertainty—such as standard errors and confidence intervals—by resampling the data itself.
+
+The module is divided into two parts. In Part 1, we will learn what non-parametric bootstrapping is, why it is useful, and when to use it. In Part 2, we will walk through hands-on examples using R to implement bootstrapping in practice.
+
+By the end of this module, you will be able to:
+
+- Understand the concept and intuition behind non-parametric bootstrapping
+
+- Use R to generate bootstrap samples, calculate statistics, and construct confidence intervals
+
+## Part 1: Non-Parametric Bootstrapping?
+
+### What is Non-Parametric Bootstrapping?
+
+Imagine you're researching public opinion on foreign military intervention. Suppose a recent international survey asked citizens from several countries whether they support military action in response to human rights violations abroad. You don't know the true global proportion of people who support such intervention—so you rely on a sample. For instance, you might have responses from 2,000 individuals across different regions.
+
+But here’s the challenge: with just one sample, how do you know how reliable your estimate is? In an ideal world, you would repeat the survey many times and examine how much the results vary—but that’s rarely possible. So how can we still understand the uncertainty around our estimates?
+
+This is where non-parametric bootstrapping becomes useful.
+
+Bootstrapping is a resampling technique that allows us to estimate the variability of a statistic—like the proportion of support for military intervention—by resampling with replacement from the data we already have. It involves creating many new “bootstrap samples” by randomly selecting observations from the original sample, and then recalculating our statistic for each one.
+
+By analyzing how our estimates change across these many bootstrap samples, we can get a sense of how much our results might vary due to sampling error, calculate standard errors,and construct confidence intervals—plausible ranges for the true population value.
+
+For example, if 41% of your sample supports military intervention, and the report said the margin of error was ±2.1 percentage points. This means the confidence interval was [38.9%, 43.1%]. Bootstrapping gives us a way to construct such intervals without needing to rely on strong theoretical assumptions.
+
+### What Does "Non-Parametric" Mean?
+
+A non-parametric approach to inference doesn’t assume a specific probability distribution (like the normal distribution) for the population. Instead, it uses computation—specifically, repeated resampling—to estimate variability and construct confidence intervals.
+
+Instead of relying on theoretical assumptions, we treat the observed sample as if it were the population and mimic the sampling process.
+
+### The Bootstrap Procedure
+Let’s say we have a sample of size n. We then create many bootstrap samples (e.g., 1,000 or 10,000), each of size n, by randomly sampling with replacement from the original sample.
+
+For each bootstrap sample b, we compute the sample mean:
+
+$$
+\bar Y_b^* = \frac{\sum_{i=1}^nY^*_{bi}}{n}
+$$
+After repeating this process many times, we end up with a distribution of bootstrap means. The mean of all bootstrap sample means will be approximately equal to the mean of the original sample.
+
+To estimate the uncertainty (i.e., standard error) of our estimate, we calculate the standard deviation of the bootstrap sample means:
+
+$$
+SD^*(\bar Y^*) = \sqrt{\frac{\sum_{b=1}^{n^n}(\bar Y_b^* - \bar Y)^2}{n^n}}
+$$
+
+Where: 
+
+- $n^n$ is the number of bootstrap replications,
+
+- $\bar Y$ is the mean of the original sample.
+
+This method works under the assumption that our sample is independent and identically distributed (IID)—that is, each observation is drawn independently from the same population distribution. Under this assumption, the mean of a large sample is close to the mean of the underlying distribution (by the Law of Large Numbers).
+
+### Advantages of Non-parametraic Bootstrapping 
+
+Non-parametric bootstrapping offers several practical advantages, especially in situations where traditional statistical methods may not be suitable:
+
+- Flexible and general: It can be used with a wide variety of statistics and models.
+
+- No distributional assumptions: It does not require the data to follow a normal or any other specific distribution.
+
+- Accurate with small or messy data: It provides more reliable inferences when the data are not well-behaved (e.g., skewed, heavy-tailed) or when sample sizes are small.
+
+- Useful for complex estimators: It can approximate sampling distributions that are difficult or impossible to derive analytically.
+
+- Applicable to complex sampling designs: Bootstrapping works even when the data come from stratified, clustered, or otherwise non-standard collection processes.
+
+### When Should You Use It?
+
+Consider using non-parametric bootstrapping in the following situations:
+
+- Unknown population distribution: When you don’t know the shape of the population distribution or suspect it’s not normal.
+
+- Doubt about classical methods: When the assumptions behind traditional statistical tests (like t-tests or confidence intervals) may not hold.
+
+## Part 2: Non-Parametric Bootstrapping in R
+
+Now let’s perform Non-Parametric Bootstrapping in R using the V-Dem dataset. The goal of this exercise is to use bootstrapping to estimate the variability of the GDP coefficient, which helps us assess how much it might vary across different samples drawn from the population.
+
+The first step is to load the dataset and build a model. In this example, we will examine the effect of GDP per capita on the Electoral Democracy Index (EDI), including the dummy variable `e_civil_war` and the interaction term between the two explanatory variables.
+
+```{r}
+vdem <- read.csv("vdem.csv") %>% drop_na() %>%
+  mutate(loggedgdp = log(e_gdppc + 0.0001))
+
+model <- lm(v2x_polyarchy ~ loggedgdp + e_civil_war + loggedgdp*e_civil_war, data = vdem)
+stargazer(model, type= "text")
+```
+
+The next step is to draw a random sample of 1000 observations with replacement from the data. Then, we re-estimate the model 100 times and store the coefficients from each iteration.
+
+```{r}
+set.seed(100)
+bs <- function(data) {
+  coefficients <- matrix(NA, nrow = 100, ncol = length(coef(model)))
+  for (i in 1:100) {
+    sample_indices <- sample(nrow(data), 1000, replace = TRUE)
+    sampled_data <- data[sample_indices, ]
+    fit <- lm(v2x_polyarchy ~ loggedgdp + e_civil_war + loggedgdp*e_civil_war, data = sampled_data) 
+    coefficients[i, ] <- coef(fit)
+}
+  return(coefficients)
+}
+coef <- bs(vdem)
+```
+
+
+Now, let’s visualize the distribution of the bootstrapped coefficients for GDP.
+
+```{r, message=FALSE, warning=FALSE}
+GDP <- coef[, 2]
+bsgdp <- data_frame(GDP)
+
+ggplot(data = bsgdp, aes(x = GDP)) +
+  geom_histogram(color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = mean(GDP)), color = "red", linetype = "dashed", size = 1) +
+  labs(x = "Bootstrapped Coefficients", y = "Frequency", title = "") +
+  theme(plot.title = element_text(hjust = 0.5, size = 15)) +
+  theme_bw()
+```
+
+The majority of the bootstrapped coefficients for GDP are distributed between 0.18 and 0.20, with a mean of 0.191 (the red line), which closely matches the original GDP coefficient from the regression model.
+
+Now, let's move on to the standard deviation. 
+
+```{r}
+sd(GDP)
+```
+
+This value (0.006) represents the standard deviation of the bootstrapped GDP coefficients, which serves as a bootstrapped estimate of the standard error (SE).
+
+```{r}
+quantile(GDP, c(0.025, 0.975))
+```
+
+This is the 95% confidence interval for the GDP coefficient, constructed from the 2.5th and 97.5th percentiles of the bootstrapped distribution. It means that, based on the bootstrap, we are 95% confident that the true effect of GDP on EDI lies between 0.179 and 0.202.
+
+#### Comparison of Bootstrapped and Original Estimates
+
+\[
+\begin{array}{lcc}
+\textbf{Metric} & \textbf{Bootstrapped Estimate} & \textbf{Original Model} \\
+\hline
+\text{SE of GDP Coef} & 0.006 & 0.002 \\
+\text{95% CI} & [0.180,\ 0.207] & [0.188,\ 0.196]\ \\
+\end{array}
+\]
+
+The bootstrapped standard error is larger than the one reported in the original regression, suggesting that the original SE may **underestimate the true variability**.
+
+The bootstrapped confidence interval is also slightly wider, reflecting greater uncertainty when we do not assume a specific distribution.
+
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we explored how to use non-parametric bootstrapping to better understand uncertainty in our regression estimates. We learned that when we cannot assume a particular distribution or when sample sizes are small, bootstrapping allows us to estimate standard errors and confidence intervals through resampling—offering a flexible and robust alternative to classical methods.
+
+You practiced this technique in R by resampling from the V-Dem dataset and examining the variability in the estimated coefficient for GDP. You also visualized the distribution of bootstrapped coefficients, calculated standard errors, and constructed confidence intervals.
+
+In the next module, we’ll dive into parametric bootstrapping—learning when and how to use it, how it compares to the non-parametric method, and how to implement it in R. We'll also discuss its strengths and limitations in applied political science research. Before you move on, make sure to complete the quiz and problem set to solidify your understanding of this module!

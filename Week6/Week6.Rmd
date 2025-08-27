@@ -1,0 +1,429 @@
+---
+title: "Ordinary Least Squares I: Theory"
+output:
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{=html}
+<style>
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(kernlab)
+library(showtext)
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+library(scales)
+```
+
+
+In the previous modules, we covered foundational statistical concepts such as covariation, correlation, confidence intervals, and p-values. These concepts are essential for understanding the material in this module.
+
+In Module 6, we will focus on **Ordinary Least Squares (OLS) regression**. Whether you're analyzing voting patterns, public opinion, or institutional performance, OLS regression is one of the most frequently used methods. Understanding how and why it works will give you a solid foundation for conducting and interpreting empirical research.
+
+We begin by introducing the concept of OLS regression: what it is, what problems it solves, and how it connects to ideas you've already learned. From there, we explore how to evaluate model fit—how well our regression line captures the data—using residual variance, $R^2$, and adjusted $R^2$.
+
+## Part 1: Understanding Ordinary Least Squares (OLS) regression
+
+Understanding relationships between variables is a central goal of quantitative research. In this part, we introduce Ordinary Least Squares (OLS) regression, a statistical method used to estimate the relationship between a dependent variable and one or more independent variables. Before diving into regression, we’ll revisit the foundational concepts of covariance and correlation, which help us understand the strength and direction of associations between two variables.
+
+### What is OLS regression? 
+
+Ordinary Least Squares (OLS) regression is a method for finding the best-fitting line through a set of data points. It does this by minimizing the sum of squared residuals—that is, the vertical distances between each observed value and the predicted value on the line. In simple terms, OLS finds the line that best captures the linear trend in your data.
+
+To understand OLS, let's recap covariance and correlation first.
+
+- **Covariance(X, Y)** measures how two variables vary together:
+
+$$
+\text{Cov}(X, Y) = \frac{1}{n - 1} \sum_{i=1}^n (X_i - \bar{X})(Y_i - \bar{Y})
+$$
+
+- **Correlation(X, Y)** standardizes covariance to a scale between -1 and 1:
+
+$$
+r = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}
+$$
+
+where \( \sigma_X \) and \( \sigma_Y \) are the standard deviations of \( X \) and \( Y \), respectively.
+
+The interpretation of the correlation coefficient is straightforward but powerful. A value of r=1 indicates a perfect positive linear relationship: as X increases, Y increases in exact proportion along a straight line. Conversely, r=−1 signifies a perfect negative linear relationship: as X increases, Y decreases in a perfectly linear fashion. A correlation of r=0 means that there is no linear relationship between the variables—changes in one variable do not predict changes in the other in a linear sense.
+
+Let’s visualize what different correlation values look like. Below are six scatterplots that illustrate varying degrees and directions of correlation.
+
+```{r, message=FALSE, echo=FALSE, fig.align='center'}
+library(ggplot2)
+library(gridExtra)
+
+set.seed(123)
+
+make_plot <- function(r){
+  x <- rnorm(100)
+  y <- r * x + sqrt(1 - r^2) * rnorm(100)
+  ggplot(data.frame(x, y), aes(x, y)) +
+    geom_point(alpha = 0.8, size = 0.5) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", linetype = "dashed") +
+    ggtitle(paste("r =", r)) +
+    theme_minimal()}
+
+plots <- list(
+  make_plot(0.2),
+  make_plot(0.5),
+  make_plot(1),
+  make_plot(-0.2),
+  make_plot(-0.5),
+  make_plot(-1)
+)
+
+grid.arrange(grobs = plots, ncol = 3)
+```
+
+
+**What correlation tell us?**
+
+Correlation analysis estimates the strength and direction of a linear relationship between two variables. However, correlation alone cannot describe the functional form or provide a predictive equation. That’s where linear regression comes in. OLS regression goes beyond just describing a relationship—it finds the line of best fit, allowing us to:
+
+- Predict the value of a dependent variable based on independent variables
+
+- Quantify the expected change in the outcome for a unit change in the predictor
+
+- Assess the strength and significance of this linear relationship
+
+### Basic Regression Math Function
+
+Regression analysis provides a way to understand and quantify the relationship between two (or more) variables. At the heart of this approach is a simple equation:
+
+$$
+Y_i = A + B X_i + E_i
+$$
+
+In this equation:
+
+- $Y_i$ is the **dependent variable** (the outcome we want to explain),
+- $X_i$ is the **independent variable** (the predictor),
+- $A$ is the **intercept**, which represents the predicted value of $Y$ when $X = 0$,
+- $B$ is the **slope coefficient**, showing the average change in $Y$ for a one-unit increase in $X$,
+- $E_i$ is the **error term**, capturing the deviation of the actual value $Y_i$ from its predicted value due to unmeasured factors or randomness.
+
+We can also rewrite the equation as:
+
+$$
+Y_i = \hat{Y}_i + E_i
+$$
+
+Where:
+
+$\hat{Y}_i = A + B X_i$ is the **predicted value** of $Y_i$,
+
+$E_i$ is now interpreted as the **residual**, or the difference between observed and predicted values.
+
+### Visualizing the Regression Line with V-Dem Data
+
+Let’s explore an example using the V-Dem dataset. Suppose we want to examine whether electoral management body autonomy is related to the quality of electoral democracy in 2000. 
+
+We'll use:
+
+- `v2x_polyarchy`: Electoral Democracy Index (dependent variable)
+- `v2elembaut`: electoral management body autonomy (independent variable)
+
+```{r, echo=FALSE, message=FALSE, fig.align='center'}
+library(ggplot2)
+library(dplyr)
+
+vdem <- read.csv("vdem.csv") %>% drop_na()
+
+# Filter V-Dem data to year 2000
+vdem_2000 <- vdem %>%
+  filter(year == 2000)
+
+# Create scatterplot with regression line
+ggplot(vdem_2000, aes(x = v2elembaut, y = v2x_polyarchy)) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue", linetype = "dashed") +
+  labs(
+    title = "Electoral Management Autonomy and Electoral Democracy Index (2000)",
+    x = "\nEMB Autonomy",
+    y = "Electoral Democracy Index\n"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+This graph shows how Electoral Management Body (EMB) Autonomy relates to the Electoral Democracy Index for different countries in the year 2000. On the horizontal axis, we have the level of autonomy that a country’s electoral management body holds. On the vertical axis, we see how democratic a country's electoral system is, based on a broader index.
+
+Each black dot represents one country’s actual values for these two variables. The dashed blue line is the regression line—a statistical best-fit line that summarizes the overall pattern in the data. It shows the average relationship between EMB autonomy and electoral democracy across all countries in the sample.
+
+The fact that this line slopes upward tells us countries with more independent electoral bodies generally tend to have stronger electoral democracies. In other words, as EMB autonomy increases, so does the overall quality of democracy, at least on average. This line helps us understand the direction and strength of the relationship, even though individual countries may still deviate from the trend.
+
+### What Does the Regression Line Represent — and How Do We Find It?
+
+The regression line helps us summarize the relationship between two variables. It represents the best linear approximation of how the outcome variable Y changes with the predictor variable X. But what exactly does “best” mean in this context?
+
+In statistical terms, the best-fit line is the one that most closely aligns with the data points. Since the data won’t lie perfectly along a straight line, we expect some deviation between the actual observed values and the predicted values generated by the line. These deviations are the residuals $E_i$, defined as:
+
+$$
+E_i = Y_i - \hat{Y}_i 
+$$
+
+To find the best-fitting line, we use the Least-Squares Criterion (LSC), which says:
+
+- Choose the line that minimizes the sum of squared residuals across all data points
+
+Mathematically, the least-squares criterion minimizes the following:
+
+$$
+S(A, B) = \sum_{i=1}^nE^2 = \sum(Y_i - A - B X_i)^2
+$$
+
+This function computes the total squared distance between the actual data points and the predicted values on the regression line. Squaring the residuals ensures that both positive and negative deviations are treated equally, and it penalizes larger errors more heavily than smaller ones.
+
+By finding the values of $A$ (intercept) and $B$ (slope) that minimize this sum, we derive the Ordinary Least Squares (OLS) estimates. These estimates give us the linear summary of the data, assuming the relationship between X and Y is approximately linear.
+
+To understand residuals, let's use the same V-dem example:
+
+```{r, echo=FALSE, message=FALSE, fig.align='center'}
+# Filter V-Dem data to year 2000
+vdem_2000 <- vdem %>%
+  filter(year == 2000)
+
+# Fit linear model
+model <- lm(v2x_polyarchy ~ v2elembaut, data = vdem_2000)
+
+# Add predicted values (fitted values) to the dataset
+vdem_2000 <- vdem_2000 %>%
+  mutate(fitted = predict(model))
+
+# Create scatterplot with regression line and residuals
+ggplot(vdem_2000, aes(x = v2elembaut, y = v2x_polyarchy)) +
+  geom_point(alpha = 0.8, color = "black") +
+  geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+  geom_segment(aes(x = v2elembaut, xend = v2elembaut, 
+                   y = v2x_polyarchy, yend = fitted),
+               color = "blue", alpha = 0.5) +
+  labs(
+    title = "Electoral Management Autonomy and Electoral Democracy Index (2000)",
+    x = "\nEMB Autonomy",
+    y = "Electoral Democracy Index\n"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The plot includes blue vertical segments that connect each observed data point to the regression line. These lines represent the residuals, or the errors of prediction for each country. In other words, a residual is the difference between the actual observed value of electoral democracy for a country and the value predicted by the regression model based on that country’s EMB autonomy. These residual lines not only show the discrepancies between observed and predicted values but also illustrate a fundamental concept in regression analysis: the regression line is chosen specifically to minimize the sum of the squared lengths of these vertical lines. 
+
+## Part 2: Model Fit 
+
+Now, we turn to explore how to assess the reliability of our regression estimates. So far, we have learned how to estimate the best-fitting regression line using Ordinary Least Squares (OLS). But how do we know if our model is doing a good job? How well does the line actually capture the pattern in the data?
+
+In this part, we’ll introduce key tools for evaluating model fit, which tell us:
+
+- How well our regression line matches the actual data,
+
+- How much of the variation in the outcome variable is explained by the model,
+
+Let’s start by taking a closer look at residuals and how we can use them to assess model performance.
+
+### Variance and Standard Error of Residuals
+
+As we learned above, **residuals** are the differences between the observed values and the values predicted by the regression model. Understanding how much these residuals vary helps us assess the accuracy of our predictions.
+
+**Residual Variance**
+
+$$
+S^2_E = \frac{\sum E^2_i}{n-2}
+$$
+
+- This formula provides an unbiased estimate of the true error variance \( S^2_E \)
+
+- $E_i$ represents the residual for the i-th observation and the denominator uses \( n - 2 \) because we estimate two parameters in simple linear regression (the slope and intercept), costing us two degrees of freedom
+
+- The value tells us how spread out the prediction errors are
+
+The **residual standard error (RSE)** is the square root of the residual variance:
+
+$$
+S_E = \sqrt{\frac{\sum E^2_i}{n-2}}
+$$
+
+- The **residual standard error (RSE)** gives a sense of how far off our model’s predictions are, on average. It is in the same units as the dependent variable, making it easier to interpret than variance.
+
+Now, let’s apply this concept to our V-Dem dataset!
+
+```{r, echo=FALSE, fig.align='center'}
+model <- lm(v2x_polyarchy ~ v2elembaut, data = vdem_2000)
+residuals <- residuals(model)
+ggplot(data.frame(residuals), aes(x = residuals)) +
+geom_histogram(binwidth = 0.02, fill = "blue", color = "white", alpha = 0.7) +
+  labs(x = "Residuals", title = "Distribution of Residuals") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The graph shows the distribution of our residuals (Actual Value of Y - Predicted Value of Y). Most of the values are clustered around 0, which indicates that the regression model is doing a good job of predicting the dependent variable.
+
+Now, let’s take a closer look by calculating the residual variance and the residual standard error!
+
+```{r}
+# Fit the linear model
+model <- lm(v2x_polyarchy ~ v2elembaut, data = vdem_2000)
+
+# Find predicted y value (y hat) for each unit i, and calculate residuals based on the y hat value
+vdem_2000 <- vdem_2000 %>%
+  mutate(y_hat = predict(model), 
+         residual = v2x_polyarchy - y_hat)
+
+# Number of observations
+n <- nrow(vdem_2000)
+
+# Residual Variance
+sum(vdem_2000$residual^2) / (n - 2)
+
+# Residual standard error (RSE)
+sqrt(sum(vdem_2000$residual^2) / (n - 2))
+```
+
+The residual standard error of 0.097 means that when we use a linear regression model to predict v2x_polyarchy (the Electoral Democracy Index) based on v2elembaut (the autonomy of electoral management bodies), the actual values of v2x_polyarchy for each country differ from the predicted values by about 0.097 points on average.
+
+### Goodness-of-Fit Metrics
+
+Once we’ve estimated a regression line, a natural next step is to ask: How well does this line actually describe the data? In other words, how closely do the predicted values from our model match the observed values? To answer this, we use **sum of squares metrics** which help us evaluate the overall performance of the regression model.
+
+The core metrics we’ll focus on include:
+
+- **Total Sum of Squares (TSS)**: The total variability in the outcome.
+
+- **Residual Sum of Squares (RSS)**: The part that the model cannot explain.
+
+- **Regression Sum of Squares (RegSS)**: The part that the model does explain.
+
+#### Total Sum of Squares (TSS): Measures total variation in the dependent variable
+
+$$
+TSS = \sum(Y_i - \bar Y)^2
+$$
+
+- In this formula, $Y_i$ represents the actual value of the dependent variable for observation i, and $\bar Y$ is the mean of all observed values of $Y$.
+
+- TSS captures the total variation in the dependent variable. It tells us how much the outcome values deviate from their overall average, without considering any predictor variables.
+
+- In other words, it represents the baseline amount of variability we are trying to explain with our regression model. A large TSS means the data are widely spread out; a small TSS means they cluster closely around the mean.
+
+#### Residual Sum of Squares (RSS): Variation not explained by the model
+
+$$
+RSS = \sum(Y_i - \hat Y_i)^2
+$$
+
+- $\hat Y_i$ refers to the **predicted** value of the dependent variable Y for observation i, based on the regression model.
+
+- RSS is the variation **not explained by the model**. It reflects the squared differences between the actual and predicted values. A smaller RSS means the predictions are closer to the observed values.
+
+#### Regression Sum of Squares (RegSS): Variation explained by the model
+
+$$
+RegSS = TSS - RSS
+$$
+
+- RegSS is the variation **explained by the model**. Higher values indicate that the model captures more of the variance in the dependent variable.
+
+Using these, we compute the coefficient of determination, or $R^2$, which quantifies the proportion of the variance in the outcome variable explained by the model:
+
+$$
+R^2 = \frac{RegSS}{TSS} = 1 - \frac{RSS}{TSS}
+$$
+
+- An $R^2$ close to 1 indicates that the model explains a large portion of the variability in the data. For example, $R^2 = 0.7$ means 70% of the variation in the outcome can be explained by the predictor.
+
+- However, $R^2$ always increases when more predictors are added, even if they are not meaningful.
+
+To account for the number of predictors $k$ we use the **adjusted $R^2$**:
+
+$$
+R^2_{adj} = 1 - \frac{RSS/(n-k-1)}{TSS/(n-1)}
+$$
+
+- It penalizes overfitting and allows more fair comparison between models with different numbers of predictors.
+
+- If you add a variable that doesn’t help the model, adjusted $R^2$ may decrease — giving you a warning sign.
+
+Using V-dem dataset, we can calculate these metrics manually:
+
+**TSS**
+
+```{r}
+# Find mean of Y value
+meany <- mean(vdem_2000$v2x_polyarchy)
+
+# Calculate the TSS
+TSS <- sum((vdem_2000$v2x_polyarchy - meany)^2)
+TSS
+```
+
+**RSS**
+
+```{r}
+yhat <- predict(model)
+# Calculate the RSS
+RSS <- sum((vdem_2000$v2x_polyarchy - yhat)^2)
+RSS
+```
+
+
+**RegSS**
+
+```{r}
+RegSS <- TSS - RSS
+```
+
+**$R^2$**
+
+```{r}
+Rsquared <- RegSS/TSS
+Rsquared
+```
+
+R-squared value of 0.849 means that approximately 84.9% of the variation in the Electoral Democracy Index (v2x_polyarchy) is explained by the model using EMB autonomy (v2elembaut) as the predictor. 
+
+**Adjusted $R^2$**
+
+```{r}
+# Number of observations
+n <- nrow(vdem_2000)
+
+# Number of predictors
+k <- length(coefficients(model))
+
+# Calculate adjusted R-squared
+Rsquaredadj <- 1 - ((1 - Rsquared) * (n - 1) / (n - k - 1))
+Rsquaredadj
+```
+
+The adjusted R-squared is 0.8466. This value accounts for the number of predictors in the model (in this case, just one). Adjusted $R^2$ is slightly lower than $R^2$ because it penalizes the inclusion of unnecessary predictors, though in simple linear regression, the difference is minimal.
+
+In our case, a high $R^2$ and adjusted $R^2$ suggest that the model is a strong linear fit to the data: EMB autonomy is a powerful predictor of electoral democracy index.
+
+## Wrapping Up: What We’ve Learned
+
+In this module, we explored Ordinary Least Squares (OLS) regression, focusing on both the intuition and the mathematics behind it.
+
+We learned that:
+
+- OLS regression estimates the best-fitting line by minimizing the sum of squared residuals—vertical differences between observed and predicted values.
+
+- The slope and intercept coefficients in a regression equation tell us how much the dependent variable is expected to change as the independent variable changes.
+
+- The residual standard error and $R^2$ provide valuable information about how well the model fits the data.
+
+In the next steps, you will have the opportunity to reinforce these concepts through a quiz and Problem Set 4. Make sure to complete them before moving on to the next module, where we’ll explore how to assess the reliability of our estimates through confidence intervals and hypothesis testing.

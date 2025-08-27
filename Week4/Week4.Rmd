@@ -19,16 +19,6 @@ body {
 </style>
 ```
 
-```{r setup, include=FALSE}
-library(kernlab)
-library(showtext)
-library(kableExtra)
-library(dplyr)
-library(tidyverse)
-library(scales)
-```
-
-
 In the previous module, we laid the foundation for understanding causal inference: how to define causal effects using counterfactuals, why assumptions like unit homogeneity and conditional independence matter, and what makes a good causal theory. But even with a solid theory and carefully specified assumptions, a key challenge remains—how can we actually estimate causal effects in practice?
 
 In this module, we will review some key concepts of causal inference and then dive into the logic of random assignment. We will explore why randomization is such a powerful tool in causal research, and how it helps us overcome confounding. We'll also implement random assignment and estimate treatment effects using R, so you can gain hands-on experience in designing and analyzing randomized experiments.
@@ -101,6 +91,7 @@ To illustrate this in R, we use a `population` dataset available on Blackboard. 
 population <- read.csv("population.csv")
 
 # View the first few rows
+library(kableExtra)
 head(population[c("Income_t1", "Income_t2", "assignment", "SEX", "EDUCATION", "ETHNIC.CLASS")], 5) %>%
   kable() %>%
   kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
@@ -108,11 +99,11 @@ head(population[c("Income_t1", "Income_t2", "assignment", "SEX", "EDUCATION", "E
 
 Now, let's draw graphs to check whether the assignment was truly random.
 
-```{r, fig.height= 8, fig.width=10}
+
+```{r, fig.height= 8, fig.width=10, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(dplyr)
 library(scales)
-
 p1 <- population %>%
   group_by(assignment, Income_t1_range) %>%
   summarise(count = n(), .groups = "drop") %>%
@@ -233,21 +224,21 @@ population %>%
 
 The output shows:
 
-- Control group (assignment = 0): $35,370.17
+- Control group (assignment = 0): $35480.67
 
-- Treatment group (assignment = 1): $39,295.73
+- Treatment group (assignment = 1): $36533.90
 
 The estimated ATE is : 
 
 ```{r}
-39295.73 - 35370.17
+36533.90 - 35480.67
 ```
 
 $$
-\text{ATE} = 39295.73 - 35370.17 = 3925.56
+\text{ATE} = 36533.90 - 35480.67 = 1053.23
 $$
 
-This means that, on average, individuals in the treatment group earned about $3,926 more than those in the control group after the intervention. Because the treatment was randomly assigned, this difference can be interpreted as the causal effect of the intervention, assuming no violations of the randomization process.
+This means that, on average, individuals in the treatment group earned about $1053.23 more than those in the control group after the intervention. Because the treatment was randomly assigned, this difference can be interpreted as the causal effect of the intervention, assuming no violations of the randomization process.
 
 ## Wrapping Up: What We’ve Learned
 
